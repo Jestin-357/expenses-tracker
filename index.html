@@ -222,7 +222,7 @@ body{
     <div class="section-head"><h2 class="section-title">Weekly Trend</h2></div>
     <div class="section-body">
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">This week vs. the 3 weeks before it (Sunday–Saturday)</div>
-      <div class="chart-box" style="height:220px;"><canvas id="weeklyTrendChart"></canvas></div>
+      <div class="chart-box" style="height:220px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
 
@@ -535,25 +535,10 @@ function renderOverview(){
       <span class="amt">${money(amt)}</span>
     </div>`).join('') : '<div class="empty-note">Nothing logged for this period.</div>';
 
-  const canvas = $('catChart'); const emptyNote = $('chartEmpty');
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-  if(catEntries.length===0){
-    canvas.style.display='none'; emptyNote.style.display='block';
-  } else {
-    canvas.style.display='block'; emptyNote.style.display='none';
-    chartInstance = new Chart(canvas.getContext('2d'), {
-      type:'doughnut',
-      data:{
-        labels: catEntries.map(c=>c[0]),
-        datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0])), borderColor:'#F8F9F5', borderWidth:2 }]
-      },
-      options:{ plugins:{ legend:{ display:false } }, cutout:'62%' }
-    });
-  }
-
   // Itemized purchases for the selected period (and category, if one is picked) —
   // this is what actually answers "what did I buy this week/month/day", not just
-  // the category totals above.
+  // the category totals above. Rendered BEFORE the chart below on purpose: if the
+  // Chart.js CDN fails to load (ad blockers, offline, etc.) this still shows.
   const periodList = [...scoped].sort((a,b)=> b.date.localeCompare(a.date) || b.createdAt-a.createdAt );
   $('periodTxCount').textContent = periodList.length;
   $('periodTxTotal').textContent = money(total);
@@ -561,6 +546,34 @@ function renderOverview(){
   periodListEl.innerHTML = periodList.length
     ? periodList.map(txRowHtml).join('')
     : `<div class="empty-note" style="padding:20px 4px;">No purchases in this period${selectedCat ? ' for ' + escapeHtml(selectedCat) : ''}.</div>`;
+
+  const canvas = $('catChart'); const emptyNote = $('chartEmpty');
+  if(chartInstance){ try{ chartInstance.destroy(); }catch(e){} chartInstance = null; }
+  if(typeof Chart === 'undefined'){
+    // Chart.js didn't load (blocked by an ad blocker/privacy extension, offline, etc.)
+    // — don't let that take down the rest of the page.
+    canvas.style.display='none';
+    emptyNote.style.display='block';
+    emptyNote.textContent = 'Chart unavailable (a browser extension or blocker may be preventing it from loading) — your totals above are still accurate.';
+  } else if(catEntries.length===0){
+    canvas.style.display='none'; emptyNote.style.display='block';
+    emptyNote.textContent = 'No expenses in this period yet.';
+  } else {
+    canvas.style.display='block'; emptyNote.style.display='none';
+    try{
+      chartInstance = new Chart(canvas.getContext('2d'), {
+        type:'doughnut',
+        data:{
+          labels: catEntries.map(c=>c[0]),
+          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0])), borderColor:'#F8F9F5', borderWidth:2 }]
+        },
+        options:{ plugins:{ legend:{ display:false } }, cutout:'62%' }
+      });
+    }catch(e){
+      canvas.style.display='none'; emptyNote.style.display='block';
+      emptyNote.textContent = 'Chart unavailable right now — your totals above are still accurate.';
+    }
+  }
 }
 
 /* ---------- Transactions list ---------- */
@@ -660,29 +673,48 @@ function renderWeeklyTrend(){
     return { label, total, range: `${start} – ${end}` };
   });
 
-  if(weeklyTrendChartInstance){ weeklyTrendChartInstance.destroy(); weeklyTrendChartInstance = null; }
-  const ctx = $('weeklyTrendChart').getContext('2d');
-  weeklyTrendChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: weeks.map(w=>w.label),
-      datasets: [{
-        data: weeks.map(w=>w.total),
-        backgroundColor: weeks.map((w,i)=> i===weeks.length-1 ? '#1C2B39' : '#1C2B3966'),
-        borderRadius: 6,
-        maxBarThickness: 56,
-      }],
-    },
-    options: {
-      plugins: {
-        legend: { display:false },
-        tooltip: { callbacks: { label: (ctx)=> money(ctx.parsed.y), title: (items)=> weeks[items[0].dataIndex].range } },
+  const canvasEl = $('weeklyTrendChart'); const fallbackEl = $('weeklyTrendEmpty');
+  if(weeklyTrendChartInstance){ try{ weeklyTrendChartInstance.destroy(); }catch(e){} weeklyTrendChartInstance = null; }
+
+  if(typeof Chart === 'undefined'){
+    // Same CDN dependency as the category chart — degrade to a plain-text
+    // breakdown instead of crashing the render if it didn't load.
+    canvasEl.style.display = 'none';
+    fallbackEl.style.display = 'block';
+    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>${w.label}</span><strong>${money(w.total)}</strong></div>`).join('');
+    return;
+  }
+  canvasEl.style.display = 'block';
+  fallbackEl.style.display = 'none';
+
+  try{
+    const ctx = canvasEl.getContext('2d');
+    weeklyTrendChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: weeks.map(w=>w.label),
+        datasets: [{
+          data: weeks.map(w=>w.total),
+          backgroundColor: weeks.map((w,i)=> i===weeks.length-1 ? '#1C2B39' : '#1C2B3966'),
+          borderRadius: 6,
+          maxBarThickness: 56,
+        }],
       },
-      scales: {
-        y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
+      options: {
+        plugins: {
+          legend: { display:false },
+          tooltip: { callbacks: { label: (ctx)=> money(ctx.parsed.y), title: (items)=> weeks[items[0].dataIndex].range } },
+        },
+        scales: {
+          y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
+        },
       },
-    },
-  });
+    });
+  }catch(e){
+    canvasEl.style.display = 'none';
+    fallbackEl.style.display = 'block';
+    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>${w.label}</span><strong>${money(w.total)}</strong></div>`).join('');
+  }
 }
 
 /* ---------- Render all ---------- */
