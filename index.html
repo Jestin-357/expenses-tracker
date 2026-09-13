@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
@@ -324,7 +324,7 @@ let weeklyTrendChartInstance = null;
 const $ = (id) => document.getElementById(id);
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){ return toStr(new Date()); }
 function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function showToast(msg){
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -442,7 +442,15 @@ function startOfWeek(d){
 }
 function startOfMonth(d){ const dt=new Date(d); dt.setDate(1); dt.setHours(0,0,0,0); return dt; }
 function startOfYear(d){ const dt=new Date(d); dt.setMonth(0,1); dt.setHours(0,0,0,0); return dt; }
-function toStr(d){ return d.toISOString().slice(0,10); }
+function toStr(d){
+  // Local calendar date, not UTC — toISOString() converts to UTC first, which
+  // silently shifts the date backward by one day for anyone in a timezone
+  // ahead of UTC (e.g. IST) whenever the time component is local midnight.
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 
 function periodRange(p){
   const now = new Date();
