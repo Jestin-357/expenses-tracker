@@ -219,6 +219,14 @@ body{
   </div>
 
   <div class="section">
+    <div class="section-head"><h2 class="section-title">Weekly Trend</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">This week vs. the 3 weeks before it (Sunday–Saturday)</div>
+      <div class="chart-box" style="height:220px;"><canvas id="weeklyTrendChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-head"><h2 class="section-title">Transactions</h2></div>
     <div class="section-body">
       <div class="filters">
@@ -311,6 +319,7 @@ let expenses = [];
 let period = 'daily';
 let editingExpenseId = null;
 let chartInstance = null;
+let weeklyTrendChartInstance = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -428,7 +437,7 @@ function importBackup(file){
 
 /* ---------- Date helpers ---------- */
 function startOfWeek(d){
-  const dt = new Date(d); const day = (dt.getDay()+6)%7; // Monday=0
+  const dt = new Date(d); const day = dt.getDay(); // Sunday=0, already what we want
   dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0); return dt;
 }
 function startOfMonth(d){ const dt=new Date(d); dt.setDate(1); dt.setHours(0,0,0,0); return dt; }
@@ -634,10 +643,53 @@ function refreshDatalists(){
   $('itemNameList').innerHTML = items.map(i=>`<option value="${escapeHtml(i.name)}">`).join('');
 }
 
+/* ---------- Weekly trend (this week vs. previous 3) ---------- */
+function weekRangeByOffset(weeksAgo){
+  // weeksAgo=0 is the current Sun–Sat week, 1 is the week before that, etc.
+  const now = new Date();
+  const thisWeekStart = startOfWeek(now);
+  const start = new Date(thisWeekStart); start.setDate(start.getDate() - weeksAgo*7);
+  const end = new Date(start); end.setDate(end.getDate()+6);
+  return [toStr(start), toStr(end)];
+}
+function renderWeeklyTrend(){
+  const weeks = [3,2,1,0].map(weeksAgo=>{
+    const [start,end] = weekRangeByOffset(weeksAgo);
+    const total = expenses.filter(e=>e.date>=start && e.date<=end).reduce((s,e)=>s+Number(e.amount),0);
+    const label = weeksAgo===0 ? 'This week' : weeksAgo===1 ? 'Last week' : `${weeksAgo} weeks ago`;
+    return { label, total, range: `${start} – ${end}` };
+  });
+
+  if(weeklyTrendChartInstance){ weeklyTrendChartInstance.destroy(); weeklyTrendChartInstance = null; }
+  const ctx = $('weeklyTrendChart').getContext('2d');
+  weeklyTrendChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: weeks.map(w=>w.label),
+      datasets: [{
+        data: weeks.map(w=>w.total),
+        backgroundColor: weeks.map((w,i)=> i===weeks.length-1 ? '#1C2B39' : '#1C2B3966'),
+        borderRadius: 6,
+        maxBarThickness: 56,
+      }],
+    },
+    options: {
+      plugins: {
+        legend: { display:false },
+        tooltip: { callbacks: { label: (ctx)=> money(ctx.parsed.y), title: (items)=> weeks[items[0].dataIndex].range } },
+      },
+      scales: {
+        y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
+      },
+    },
+  });
+}
+
 /* ---------- Render all ---------- */
 function renderAll(){
   renderStats();
   renderOverview();
+  renderWeeklyTrend();
   populateCategoryFilter();
   renderTransactions();
   refreshDatalists();
