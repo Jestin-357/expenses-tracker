@@ -67,6 +67,18 @@ body{
 .add-btn:active{transform:translateY(1px);box-shadow:none;}
 
 /* Dashboard cards */
+.hero-card{
+  background:linear-gradient(135deg, #4F46E5 0%, #7C3AED 55%, #C026D3 100%);
+  border-radius:16px;padding:24px 24px 20px;color:#fff;margin-bottom:22px;
+  box-shadow:0 12px 28px rgba(124,58,237,0.28);
+}
+.hero-label{font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.85;font-weight:600;}
+.hero-amount{font-family:'IBM Plex Mono',monospace;font-size:42px;font-weight:700;margin:8px 0 18px;}
+.hero-subrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.hero-pill{background:rgba(255,255,255,0.16);border-radius:10px;padding:10px 12px;}
+.hero-pill-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.85;font-weight:600;margin-bottom:4px;}
+.hero-pill-value{font-family:'IBM Plex Mono',monospace;font-size:16.5px;font-weight:600;}
+
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
 .stat-card{
   background:var(--paper-card);border:1px solid var(--line);border-radius:10px;
@@ -77,8 +89,29 @@ body{
 .stat-card.week{--accent:var(--amber);}
 .stat-card.month{--accent:var(--blue);}
 .stat-card.all{--accent:var(--green);}
+.stat-card.income{--accent:var(--green);}
+.stat-card.expense{--accent:var(--coral);}
+.stat-card.balance{--accent:var(--blue);}
+.add-btn.expense{background:var(--coral);}
+.add-btn.income{background:var(--green);}
 .stat-label{font-size:11.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);font-weight:600;}
 .stat-value{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;margin-top:6px;}
+
+/* Category icon + progress bar */
+.cat-icon-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;line-height:1;}
+.cat-row-bar-wrap{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden;min-width:40px;}
+.cat-row-bar{height:100%;border-radius:99px;}
+
+/* Category picker (modal) */
+.cat-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cat-pick-btn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--paper);border:1.5px solid var(--line);border-radius:10px;
+  padding:12px 6px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+}
+.cat-pick-btn .cat-pick-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.cat-pick-btn .cat-pick-label{font-size:11px;font-weight:600;color:var(--ink-soft);text-align:center;line-height:1.2;}
+.cat-pick-btn.active .cat-pick-label{color:var(--ink);}
 
 /* Section shell */
 .section{background:var(--paper-card);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden;}
@@ -95,11 +128,11 @@ body{
 .overview-total{}
 .overview-total .label{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);font-weight:600;}
 .overview-total .amount{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;margin:6px 0 18px;}
-.cat-rows{display:flex;flex-direction:column;gap:8px;}
+.cat-rows{display:flex;flex-direction:column;gap:10px;}
 .cat-row{display:flex;align-items:center;gap:10px;font-size:13.5px;}
 .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.cat-row .name{flex:1;color:var(--ink);}
-.cat-row .amt{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);}
+.cat-row .name{width:88px;flex:0 0 auto;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cat-row .amt{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);flex-shrink:0;}
 .chart-box{position:relative;height:220px;display:flex;align-items:center;justify-content:center;}
 .empty-note{color:var(--ink-soft);font-size:13.5px;font-style:italic;}
 
@@ -155,6 +188,11 @@ body{
 
 @media(max-width:720px){
   .stats{grid-template-columns:repeat(2,1fr);}
+  .hero-subrow{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .hero-pill{padding:8px 6px;}
+  .hero-pill-value{font-size:13.5px;}
+  .hero-amount{font-size:32px;}
+  .cat-picker{grid-template-columns:repeat(3,1fr);}
   .overview-grid{grid-template-columns:1fr;}
   .tx-row{grid-template-columns:1fr auto;row-gap:6px;}
   .tx-tag,.tx-pay{grid-column:1/2;}
@@ -169,27 +207,31 @@ body{
   <div class="header">
     <div class="brand">
       <h1><span class="mark">₹</span>Ledger</h1>
-      <p>Track what you spend, one line at a time.</p>
+      <p>Track what you spend and earn, one line at a time.</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <button class="btn-ghost" id="syncBtn" style="background:var(--paper-card);font-family:'IBM Plex Mono',monospace;">🔄 <span id="syncLabel">Set up sync</span></button>
       <button class="btn-ghost" id="exportBtn" style="background:var(--paper-card);">⬇ Backup</button>
       <button class="btn-ghost" id="importBtn" style="background:var(--paper-card);">⬆ Restore</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;"/>
-      <button class="add-btn" id="openAddBtn">+ Add Expense</button>
+      <button class="add-btn expense" id="openAddBtn">+ Expense</button>
+      <button class="add-btn income" id="openAddIncomeBtn">+ Income</button>
     </div>
   </div>
 
-  <div class="stats">
-    <div class="stat-card today"><div class="stat-label">Today</div><div class="stat-value" id="statToday">—</div></div>
-    <div class="stat-card week"><div class="stat-label">This Week</div><div class="stat-value" id="statWeek">—</div></div>
-    <div class="stat-card month"><div class="stat-label">This Month</div><div class="stat-value" id="statMonth">—</div></div>
-    <div class="stat-card all"><div class="stat-label">All Time</div><div class="stat-value" id="statAll">—</div></div>
+  <div class="hero-card">
+    <div class="hero-label">Balance this month</div>
+    <div class="hero-amount" id="statBalanceMonth">—</div>
+    <div class="hero-subrow">
+      <div class="hero-pill"><span class="hero-pill-label">💰 Income</span><span class="hero-pill-value" id="statIncome">—</span></div>
+      <div class="hero-pill"><span class="hero-pill-label">💸 Expenses</span><span class="hero-pill-value" id="statExpense">—</span></div>
+      <div class="hero-pill"><span class="hero-pill-label">🏦 All-time</span><span class="hero-pill-value" id="statBalanceAll">—</span></div>
+    </div>
   </div>
 
   <div class="section">
     <div class="section-head">
-      <h2 class="section-title">Overview</h2>
+      <h2 class="section-title">📊 Overview</h2>
       <div class="tabs" id="periodTabs">
         <button class="tab active" data-period="daily">Daily</button>
         <button class="tab" data-period="weekly">Weekly</button>
@@ -198,6 +240,10 @@ body{
       </div>
     </div>
     <div class="section-body">
+      <div class="tabs" id="overviewTypeTabs" style="margin-bottom:12px;">
+        <button class="tab active" data-type="expense">Expenses</button>
+        <button class="tab" data-type="income">Income</button>
+      </div>
       <div class="filters" style="margin-bottom:10px;">
         <select id="overviewCategory"><option value="">All categories</option></select>
       </div>
@@ -219,18 +265,29 @@ body{
   </div>
 
   <div class="section">
-    <div class="section-head"><h2 class="section-title">Weekly Trend</h2></div>
+    <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">This week vs. the 3 weeks before it (Sunday–Saturday)</div>
-      <div class="chart-box" style="height:220px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div style="font-size:13px;color:var(--ink-soft);">This week vs. the 3 weeks before it (Sunday–Saturday)</div>
+        <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:5px;"></span>Income</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--coral);margin-right:5px;"></span>Expenses</span>
+        </div>
+      </div>
+      <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head"><h2 class="section-title">Transactions</h2></div>
+    <div class="section-head"><h2 class="section-title">🧾 Transactions</h2></div>
     <div class="section-body">
       <div class="filters">
         <input type="text" id="searchInput" placeholder="Search by item…" />
+        <select id="filterType">
+          <option value="">All types</option>
+          <option value="expense">Expenses</option>
+          <option value="income">Income</option>
+        </select>
         <select id="filterCategory"><option value="">All categories</option></select>
         <input type="date" id="filterFrom" title="From date"/>
         <input type="date" id="filterTo" title="To date"/>
@@ -250,6 +307,10 @@ body{
 <div class="overlay" id="expenseOverlay">
   <div class="modal">
     <h3 id="expenseModalTitle">Add Expense</h3>
+    <div class="tabs" id="formTypeTabs" style="margin-bottom:16px;">
+      <button class="tab active" data-type="expense" type="button">Expense</button>
+      <button class="tab" data-type="income" type="button">Income</button>
+    </div>
     <div class="field">
       <label>Item name</label>
       <input type="text" id="fItemName" list="itemNameList" placeholder="e.g. Bread" autocomplete="off"/>
@@ -268,7 +329,7 @@ body{
     <div class="field-row">
       <div class="field">
         <label>Category</label>
-        <select id="fCategorySelect"></select>
+        <div class="cat-picker" id="fCategoryPicker"></div>
         <input type="text" id="fCategoryNew" placeholder="Type new category name" style="margin-top:8px;display:none;"/>
       </div>
       <div class="field">
@@ -312,14 +373,30 @@ body{
 
 <script>
 const CATEGORY_COLORS = ['#2F6F4E','#3457D5','#C4432B','#B8862B','#7A5CC1','#1C8C9E','#C24E86','#5B7B3A'];
-const DEFAULT_CATEGORIES = ['Food','Groceries','Transport','Utilities','Entertainment','Health','Shopping','Rent','Other'];
+const CATEGORIES_BY_TYPE = {
+  expense: ['Food','Groceries','Transport','Utilities','Entertainment','Health','Shopping','Rent','Other'],
+  income: ['Salary','Freelance','Business','Investment','Gift','Refund','Other'],
+};
+const CATEGORY_ICONS = {
+  Food:'🍔', Groceries:'🛒', Transport:'🚌', Utilities:'💡', Entertainment:'🎬',
+  Health:'🏥', Shopping:'🛍️', Rent:'🏠', Other:'📦',
+  Salary:'💰', Freelance:'💻', Business:'📈', Investment:'📊', Gift:'🎁', Refund:'↩️',
+};
+function categoryIcon(cat, type){
+  if(CATEGORY_ICONS[cat]) return CATEGORY_ICONS[cat];
+  return type === 'income' ? '💵' : '🏷️';
+}
 const NEW_CAT_VALUE = '__new__';
 let items = [];
 let expenses = [];
 let period = 'daily';
+let overviewType = 'expense';
+let currentFormType = 'expense';
 let editingExpenseId = null;
 let chartInstance = null;
 let weeklyTrendChartInstance = null;
+
+function hashStr(s){ let h=0; for(let i=0;i<String(s).length;i++){ h = (h*31 + String(s).charCodeAt(i))|0; } return Math.abs(h); }
 
 const $ = (id) => document.getElementById(id);
 
@@ -367,8 +444,8 @@ function connectSync(code){
     if(doc.exists){
       const data = doc.data();
       applyingRemote = true;
-      items = data.items || [];
-      expenses = data.expenses || [];
+      items = withDefaultType(data.items);
+      expenses = withDefaultType(data.expenses);
       localStorage.setItem('ledger-data', JSON.stringify({ items, expenses }));
       renderAll();
       applyingRemote = false;
@@ -381,12 +458,16 @@ function connectSync(code){
   });
 }
 
+function withDefaultType(list){
+  return (list || []).map(x => ({ type: 'expense', ...x }));
+}
+
 async function loadData(){
   try{
     const raw = localStorage.getItem('ledger-data');
     const parsed = raw ? JSON.parse(raw) : { items: [], expenses: [] };
-    items = parsed.items || [];
-    expenses = parsed.expenses || [];
+    items = withDefaultType(parsed.items);
+    expenses = withDefaultType(parsed.expenses);
   }catch(e){
     items = []; expenses = [];
   }
@@ -465,83 +546,125 @@ function sumInRange(from, to){
 }
 
 /* ---------- Category helpers ---------- */
-function allCategories(){
-  const used = [...new Set(items.map(i=>i.category).concat(expenses.map(e=>e.category)))].filter(Boolean);
-  return [...new Set([...DEFAULT_CATEGORIES, ...used])].sort();
+function allCategories(type){
+  const used = [...new Set(
+    items.filter(i=>(i.type||'expense')===type).map(i=>i.category)
+      .concat(expenses.filter(e=>(e.type||'expense')===type).map(e=>e.category))
+  )].filter(Boolean);
+  return [...new Set([...(CATEGORIES_BY_TYPE[type]||[]), ...used])].sort();
+}
+function allCategoriesAll(){
+  return [...new Set([...allCategories('expense'), ...allCategories('income')])].sort();
 }
 
-function fillCategorySelect(selectEl, selected){
-  const cats = allCategories();
-  selectEl.innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')
-    + `<option value="${NEW_CAT_VALUE}">＋ Add new category…</option>`;
-  if(selected && cats.includes(selected)){
-    selectEl.value = selected;
-  } else if(selected){
-    selectEl.value = NEW_CAT_VALUE; // will be paired with a visible "new" text input by the caller
-  } else {
-    selectEl.value = cats[0] || NEW_CAT_VALUE;
+function fillCategoryPicker(containerEl, selected, type){
+  const cats = allCategories(type);
+  const resolved = (selected && cats.includes(selected)) ? selected : (cats[0] || NEW_CAT_VALUE);
+  containerEl.dataset.selected = resolved;
+  containerEl.dataset.type = type;
+  const catButtons = cats.map(c=>{
+    const color = categoryColor(c, type);
+    const isActive = c === resolved;
+    return `<button type="button" class="cat-pick-btn${isActive?' active':''}" data-cat="${escapeHtml(c)}"
+        style="border-color:${isActive?color:'var(--line)'};background:${isActive?color+'14':'var(--paper)'}">
+      <span class="cat-pick-icon" style="background:${color}26;">${categoryIcon(c, type)}</span>
+      <span class="cat-pick-label">${escapeHtml(c)}</span>
+    </button>`;
+  }).join('');
+  const newActive = resolved === NEW_CAT_VALUE;
+  containerEl.innerHTML = catButtons + `<button type="button" class="cat-pick-btn${newActive?' active':''}" data-cat="${NEW_CAT_VALUE}"
+      style="border-color:${newActive?'var(--ink)':'var(--line)'};background:${newActive?'var(--paper-card)':'var(--paper)'}">
+    <span class="cat-pick-icon" style="background:var(--line);">＋</span>
+    <span class="cat-pick-label">New</span>
+  </button>`;
+  // if the preset category isn't in this type's list yet (freshly typed custom
+  // category), show the "new" input pre-filled instead of silently losing it
+  if(selected && !cats.includes(selected)){
+    containerEl.dataset.selected = NEW_CAT_VALUE;
+    containerEl.querySelectorAll('.cat-pick-btn').forEach(b=>b.classList.toggle('active', b.dataset.cat===NEW_CAT_VALUE));
   }
 }
 
-function wireCategoryToggle(selectEl, newInputEl, presetValue){
-  const sync = () => {
-    if(selectEl.value === NEW_CAT_VALUE){
-      newInputEl.style.display = 'block';
-      if(presetValue) newInputEl.value = presetValue;
-      newInputEl.focus();
-    } else {
-      newInputEl.style.display = 'none';
-    }
-  };
-  selectEl.onchange = sync;
-  if(presetValue && !allCategories().includes(presetValue)){ sync(); }
+function wireCategoryPicker(containerEl, newInputEl, presetValue){
+  if(containerEl.dataset.selected === NEW_CAT_VALUE){
+    newInputEl.style.display = 'block';
+    if(presetValue) newInputEl.value = presetValue;
+  } else {
+    newInputEl.style.display = 'none';
+  }
 }
 
-function readCategoryValue(selectEl, newInputEl){
-  if(selectEl.value === NEW_CAT_VALUE){
+function readCategoryValue(containerEl, newInputEl){
+  if(containerEl.dataset.selected === NEW_CAT_VALUE){
     return newInputEl.value.trim();
   }
-  return selectEl.value;
+  return containerEl.dataset.selected;
 }
 
 /* ---------- Dashboard stats ---------- */
+function moneySigned(n){
+  const v = Number(n||0);
+  return (v<0 ? '-' : '') + money(Math.abs(v));
+}
+function sumByType(from, to, type){
+  return expenses.filter(e=>e.date>=from && e.date<=to && (e.type||'expense')===type).reduce((s,e)=>s+Number(e.amount),0);
+}
 function renderStats(){
-  $('statToday').textContent = money(sumInRange(todayStr(), todayStr()));
-  const [wf] = periodRange('weekly'); $('statWeek').textContent = money(sumInRange(wf, todayStr()));
-  const [mf] = periodRange('monthly'); $('statMonth').textContent = money(sumInRange(mf, todayStr()));
-  $('statAll').textContent = money(expenses.reduce((s,e)=>s+Number(e.amount),0));
+  const [mf] = periodRange('monthly');
+  const incomeMonth = sumByType(mf, todayStr(), 'income');
+  const expenseMonth = sumByType(mf, todayStr(), 'expense');
+  const balMonth = incomeMonth - expenseMonth;
+  $('statIncome').textContent = money(incomeMonth);
+  $('statExpense').textContent = money(expenseMonth);
+  $('statBalanceMonth').textContent = moneySigned(balMonth);
+  $('statBalanceMonth').style.color = balMonth < 0 ? '#FFD9D2' : '#FFFFFF';
+
+  const totalIncomeAll = expenses.filter(e=>(e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
+  const totalExpenseAll = expenses.filter(e=>(e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
+  const balAll = totalIncomeAll - totalExpenseAll;
+  $('statBalanceAll').textContent = moneySigned(balAll);
+  $('statBalanceAll').style.color = balAll < 0 ? '#FFD9D2' : '#FFFFFF';
 }
 
 /* ---------- Overview (period tabs + chart) ---------- */
-function categoryColor(cat){
-  const cats = [...new Set(expenses.map(e=>e.category))];
-  const idx = cats.indexOf(cat);
+function categoryColor(cat, type){
+  const cats = CATEGORIES_BY_TYPE[type] || [];
+  let idx = cats.indexOf(cat);
+  if(idx === -1) idx = hashStr(cat);
   return CATEGORY_COLORS[idx % CATEGORY_COLORS.length] || '#999';
 }
 
 function renderOverview(){
-  const labels = {daily:"Today's spending", weekly:"This week's spending", monthly:"This month's spending", yearly:"This year's spending"};
+  const typeWord = overviewType === 'income' ? 'income' : 'spending';
+  const labels = {daily:`Today's ${typeWord}`, weekly:`This week's ${typeWord}`, monthly:`This month's ${typeWord}`, yearly:`This year's ${typeWord}`};
   const [from,to] = periodRange(period);
-  let inRange = expenses.filter(e=>e.date>=from && e.date<=to);
+  let inRange = expenses.filter(e=>e.date>=from && e.date<=to && (e.type||'expense')===overviewType);
 
   const selectedCat = $('overviewCategory').value;
   const scoped = selectedCat ? inRange.filter(e=>e.category===selectedCat) : inRange;
   const total = scoped.reduce((s,e)=>s+Number(e.amount),0);
 
-  $('periodLabel').textContent = selectedCat ? `${selectedCat} — ${labels[period].replace("'s spending","")}` : labels[period];
+  $('periodLabel').textContent = selectedCat ? `${selectedCat} — ${labels[period].replace(`'s ${typeWord}`,'')}` : labels[period];
   $('periodTotal').textContent = money(total);
+  $('periodTotal').style.color = overviewType === 'income' ? 'var(--green)' : 'var(--ink)';
 
   const byCat = {};
   inRange.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
   const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
 
   const rowsEl = $('catRows');
-  rowsEl.innerHTML = catEntries.length ? catEntries.map(([cat,amt])=>`
+  const maxCatAmt = catEntries.length ? catEntries[0][1] : 0;
+  rowsEl.innerHTML = catEntries.length ? catEntries.map(([cat,amt])=>{
+    const color = categoryColor(cat, overviewType);
+    const pct = maxCatAmt ? Math.max(6, Math.round((amt/maxCatAmt)*100)) : 0;
+    return `
     <div class="cat-row" style="${selectedCat && selectedCat!==cat ? 'opacity:0.4;' : ''}">
-      <span class="cat-dot" style="background:${categoryColor(cat)}"></span>
+      <span class="cat-icon-circle" style="background:${color}26;">${categoryIcon(cat, overviewType)}</span>
       <span class="name">${escapeHtml(cat)}</span>
+      <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${pct}%;background:${color};"></div></div>
       <span class="amt">${money(amt)}</span>
-    </div>`).join('') : '<div class="empty-note">Nothing logged for this period.</div>';
+    </div>`;
+  }).join('') : `<div class="empty-note">No ${overviewType} logged for this period.</div>`;
 
   // Itemized purchases for the selected period (and category, if one is picked) —
   // this is what actually answers "what did I buy this week/month/day", not just
@@ -551,9 +674,10 @@ function renderOverview(){
   $('periodTxCount').textContent = periodList.length;
   $('periodTxTotal').textContent = money(total);
   const periodListEl = $('periodTxList');
+  const noun = overviewType === 'income' ? 'income entries' : 'purchases';
   periodListEl.innerHTML = periodList.length
     ? periodList.map(txRowHtml).join('')
-    : `<div class="empty-note" style="padding:20px 4px;">No purchases in this period${selectedCat ? ' for ' + escapeHtml(selectedCat) : ''}.</div>`;
+    : `<div class="empty-note" style="padding:20px 4px;">No ${noun} in this period${selectedCat ? ' for ' + escapeHtml(selectedCat) : ''}.</div>`;
 
   const canvas = $('catChart'); const emptyNote = $('chartEmpty');
   if(chartInstance){ try{ chartInstance.destroy(); }catch(e){} chartInstance = null; }
@@ -573,7 +697,7 @@ function renderOverview(){
         type:'doughnut',
         data:{
           labels: catEntries.map(c=>c[0]),
-          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0])), borderColor:'#F8F9F5', borderWidth:2 }]
+          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], overviewType)), borderColor:'#F8F9F5', borderWidth:2 }]
         },
         options:{ plugins:{ legend:{ display:false } }, cutout:'62%' }
       });
@@ -588,15 +712,21 @@ function renderOverview(){
 function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function txRowHtml(e){
+  const type = e.type || 'expense';
+  const isIncome = type === 'income';
+  const color = categoryColor(e.category, type);
   return `
     <div class="tx-row">
-      <div class="tx-main">
-        <div class="tx-item">${escapeHtml(e.itemName)}</div>
-        <div class="tx-meta">${e.date}</div>
+      <div class="tx-main" style="display:flex;align-items:center;gap:10px;">
+        <span class="cat-icon-circle" style="background:${color}26;">${categoryIcon(e.category, type)}</span>
+        <div>
+          <div class="tx-item">${escapeHtml(e.itemName)}</div>
+          <div class="tx-meta">${e.date}</div>
+        </div>
       </div>
-      <div class="tx-tag" style="background:${categoryColor(e.category)}22;color:${categoryColor(e.category)}">${escapeHtml(e.category)}</div>
+      <div class="tx-tag" style="background:${color}22;color:${color}">${escapeHtml(e.category)}</div>
       <div class="tx-pay">${escapeHtml(e.paymentMethod)}</div>
-      <div class="tx-amt">${money(e.amount)}</div>
+      <div class="tx-amt" style="color:${isIncome ? 'var(--green)' : 'var(--ink)'}">${isIncome ? '+' : '−'}${money(e.amount)}</div>
       <div class="tx-actions">
         <button class="icon-btn" onclick="openEditExpense('${e.id}')" title="Edit">✎</button>
         <button class="icon-btn danger" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
@@ -607,14 +737,15 @@ function txRowHtml(e){
 function populateCategoryFilter(){
   const sel = $('filterCategory');
   const cur = sel.value;
-  const cats = allCategories();
+  const cats = allCategoriesAll();
   sel.innerHTML = '<option value="">All categories</option>' + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
   sel.value = cats.includes(cur) ? cur : '';
 
   const ovSel = $('overviewCategory');
   const ovCur = ovSel.value;
-  ovSel.innerHTML = '<option value="">All categories</option>' + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  ovSel.value = cats.includes(ovCur) ? ovCur : '';
+  const ovCats = allCategories(overviewType);
+  ovSel.innerHTML = '<option value="">All categories</option>' + ovCats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  ovSel.value = ovCats.includes(ovCur) ? ovCur : '';
 }
 
 const RECENT_TX_LIMIT = 5;
@@ -622,13 +753,15 @@ let showAllTx = false;
 
 function renderTransactions(){
   const search = $('searchInput').value.trim().toLowerCase();
+  const type = $('filterType').value;
   const cat = $('filterCategory').value;
   const from = $('filterFrom').value;
   const to = $('filterTo').value;
-  const filtersActive = !!(search || cat || from || to);
+  const filtersActive = !!(search || type || cat || from || to);
 
   let list = [...expenses].sort((a,b)=> b.date.localeCompare(a.date) || b.createdAt-a.createdAt );
   if(search) list = list.filter(e=>e.itemName.toLowerCase().includes(search));
+  if(type) list = list.filter(e=>(e.type||'expense')===type);
   if(cat) list = list.filter(e=>e.category===cat);
   if(from) list = list.filter(e=>e.date>=from);
   if(to) list = list.filter(e=>e.date<=to);
@@ -636,9 +769,19 @@ function renderTransactions(){
   const el = $('txList');
   const toggleBtn = $('toggleTxLimit');
   $('txCount').textContent = list.length;
-  $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0));
+  if(type === 'income'){
+    $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0));
+    $('txTotal').style.color = 'var(--green)';
+  } else if(type === 'expense'){
+    $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0));
+    $('txTotal').style.color = 'var(--ink)';
+  } else {
+    const net = list.reduce((s,e)=> s + ((e.type||'expense')==='income' ? Number(e.amount) : -Number(e.amount)), 0);
+    $('txTotal').textContent = moneySigned(net) + ' (net)';
+    $('txTotal').style.color = net < 0 ? 'var(--coral)' : 'var(--green)';
+  }
   if(list.length===0){
-    el.innerHTML = '<div class="empty-note" style="padding:20px 4px;">No transactions match. Try adjusting filters, or add a new expense.</div>';
+    el.innerHTML = '<div class="empty-note" style="padding:20px 4px;">No transactions match. Try adjusting filters, or add a new expense or income.</div>';
     toggleBtn.style.display = 'none';
     return;
   }
@@ -661,7 +804,7 @@ function renderTransactions(){
 $('toggleTxLimit').addEventListener('click', ()=>{ showAllTx = !showAllTx; renderTransactions(); });
 
 function refreshDatalists(){
-  $('itemNameList').innerHTML = items.map(i=>`<option value="${escapeHtml(i.name)}">`).join('');
+  $('itemNameList').innerHTML = items.filter(i=>(i.type||'expense')===currentFormType).map(i=>`<option value="${escapeHtml(i.name)}">`).join('');
 }
 
 /* ---------- Weekly trend (this week vs. previous 3) ---------- */
@@ -676,20 +819,28 @@ function weekRangeByOffset(weeksAgo){
 function renderWeeklyTrend(){
   const weeks = [3,2,1,0].map(weeksAgo=>{
     const [start,end] = weekRangeByOffset(weeksAgo);
-    const total = expenses.filter(e=>e.date>=start && e.date<=end).reduce((s,e)=>s+Number(e.amount),0);
+    const income = expenses.filter(e=>e.date>=start && e.date<=end && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
+    const expense = expenses.filter(e=>e.date>=start && e.date<=end && (e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
     const label = weeksAgo===0 ? 'This week' : weeksAgo===1 ? 'Last week' : `${weeksAgo} weeks ago`;
-    return { label, total, range: `${start} – ${end}` };
+    return { label, income, expense, range: `${start} – ${end}` };
   });
 
   const canvasEl = $('weeklyTrendChart'); const fallbackEl = $('weeklyTrendEmpty');
   if(weeklyTrendChartInstance){ try{ weeklyTrendChartInstance.destroy(); }catch(e){} weeklyTrendChartInstance = null; }
 
+  const hasAny = weeks.some(w=>w.income>0 || w.expense>0);
   if(typeof Chart === 'undefined'){
     // Same CDN dependency as the category chart — degrade to a plain-text
     // breakdown instead of crashing the render if it didn't load.
     canvasEl.style.display = 'none';
     fallbackEl.style.display = 'block';
-    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>${w.label}</span><strong>${money(w.total)}</strong></div>`).join('');
+    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
+    return;
+  }
+  if(!hasAny){
+    canvasEl.style.display = 'none';
+    fallbackEl.style.display = 'block';
+    fallbackEl.textContent = 'No income or expenses logged in the last 4 weeks.';
     return;
   }
   canvasEl.style.display = 'block';
@@ -701,17 +852,15 @@ function renderWeeklyTrend(){
       type: 'bar',
       data: {
         labels: weeks.map(w=>w.label),
-        datasets: [{
-          data: weeks.map(w=>w.total),
-          backgroundColor: weeks.map((w,i)=> i===weeks.length-1 ? '#1C2B39' : '#1C2B3966'),
-          borderRadius: 6,
-          maxBarThickness: 56,
-        }],
+        datasets: [
+          { label:'Income', data: weeks.map(w=>w.income), backgroundColor:'#2F6F4E', borderRadius:6, maxBarThickness:30 },
+          { label:'Expenses', data: weeks.map(w=>w.expense), backgroundColor:'#C4432B', borderRadius:6, maxBarThickness:30 },
+        ],
       },
       options: {
         plugins: {
           legend: { display:false },
-          tooltip: { callbacks: { label: (ctx)=> money(ctx.parsed.y), title: (items)=> weeks[items[0].dataIndex].range } },
+          tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.y)}`, title: (items)=> weeks[items[0].dataIndex].range } },
         },
         scales: {
           y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
@@ -721,7 +870,7 @@ function renderWeeklyTrend(){
   }catch(e){
     canvasEl.style.display = 'none';
     fallbackEl.style.display = 'block';
-    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>${w.label}</span><strong>${money(w.total)}</strong></div>`).join('');
+    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
   }
 }
 
@@ -735,13 +884,22 @@ function renderAll(){
   refreshDatalists();
 }
 
-/* ---------- Expense modal logic ---------- */
-function openAddExpense(){
+/* ---------- Expense/Income modal logic ---------- */
+function applyFormType(type, presetCategory){
+  currentFormType = type;
+  document.querySelectorAll('#formTypeTabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.type===type));
+  fillCategoryPicker($('fCategoryPicker'), presetCategory || null, type);
+  wireCategoryPicker($('fCategoryPicker'), $('fCategoryNew'), presetCategory || null);
+  $('saveExpenseBtn').textContent = type==='income' ? 'Save Income' : 'Save Expense';
+  $('saveExpenseBtn').style.background = type==='income' ? 'var(--green)' : 'var(--coral)';
+  refreshDatalists();
+}
+
+function openAddModal(type){
   editingExpenseId = null;
-  $('expenseModalTitle').textContent = 'Add Expense';
+  applyFormType(type, null);
+  $('expenseModalTitle').textContent = type==='income' ? 'Add Income' : 'Add Expense';
   $('fItemName').value=''; $('fAmount').value=''; $('fDate').value=todayStr();
-  fillCategorySelect($('fCategorySelect'), null);
-  wireCategoryToggle($('fCategorySelect'), $('fCategoryNew'), null);
   $('fPayment').value='Cash';
   $('expenseOverlay').classList.add('open');
   setTimeout(()=>$('fItemName').focus(),50);
@@ -749,21 +907,51 @@ function openAddExpense(){
 window.openEditExpense = function(id){
   const e = expenses.find(x=>x.id===id); if(!e) return;
   editingExpenseId = id;
-  $('expenseModalTitle').textContent = 'Edit Expense';
+  const type = e.type || 'expense';
+  applyFormType(type, e.category);
+  $('expenseModalTitle').textContent = type==='income' ? 'Edit Income' : 'Edit Expense';
   $('fItemName').value=e.itemName; $('fAmount').value=e.amount; $('fDate').value=e.date;
-  fillCategorySelect($('fCategorySelect'), e.category);
-  wireCategoryToggle($('fCategorySelect'), $('fCategoryNew'), e.category);
   $('fPayment').value=e.paymentMethod;
   $('expenseOverlay').classList.add('open');
 }
 function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
 
+$('formTypeTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  applyFormType(btn.dataset.type, null);
+  $('expenseModalTitle').textContent = (editingExpenseId ? 'Edit ' : 'Add ') + (btn.dataset.type==='income' ? 'Income' : 'Expense');
+});
+
+// Event delegation on the container itself — survives the innerHTML rebuilds
+// that fillCategoryPicker does every time the type or item name changes.
+$('fCategoryPicker').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.cat-pick-btn'); if(!btn) return;
+  const containerEl = $('fCategoryPicker');
+  const type = containerEl.dataset.type || currentFormType;
+  const color = btn.dataset.cat === NEW_CAT_VALUE ? 'var(--ink)' : categoryColor(btn.dataset.cat, type);
+  containerEl.querySelectorAll('.cat-pick-btn').forEach(b=>{
+    b.classList.remove('active');
+    b.style.borderColor = 'var(--line)';
+    b.style.background = 'var(--paper)';
+  });
+  btn.classList.add('active');
+  btn.style.borderColor = color;
+  btn.style.background = btn.dataset.cat === NEW_CAT_VALUE ? 'var(--paper-card)' : color + '14';
+  containerEl.dataset.selected = btn.dataset.cat;
+  if(btn.dataset.cat === NEW_CAT_VALUE){
+    $('fCategoryNew').style.display = 'block';
+    $('fCategoryNew').focus();
+  } else {
+    $('fCategoryNew').style.display = 'none';
+  }
+});
+
 $('fItemName').addEventListener('input', ()=>{
   const name = $('fItemName').value.trim().toLowerCase();
-  const match = items.find(i=>i.name.toLowerCase()===name);
+  const match = items.find(i=>i.name.toLowerCase()===name && (i.type||'expense')===currentFormType);
   if(match && match.category){
-    fillCategorySelect($('fCategorySelect'), match.category);
-    wireCategoryToggle($('fCategorySelect'), $('fCategoryNew'), match.category);
+    fillCategoryPicker($('fCategoryPicker'), match.category, currentFormType);
+    wireCategoryPicker($('fCategoryPicker'), $('fCategoryNew'), match.category);
   }
 });
 
@@ -771,16 +959,18 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
   const itemName = $('fItemName').value.trim();
   const amount = parseFloat($('fAmount').value);
   const date = $('fDate').value || todayStr();
-  const category = readCategoryValue($('fCategorySelect'), $('fCategoryNew')) || 'Uncategorized';
+  const type = currentFormType;
+  const category = readCategoryValue($('fCategoryPicker'), $('fCategoryNew')) || 'Uncategorized';
   const paymentMethod = $('fPayment').value;
 
-  if(!itemName){ showToast('Enter an item name'); return; }
+  if(!itemName){ showToast('Enter a name'); return; }
   if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
 
-  // find or create library item
-  let libItem = items.find(i=>i.name.toLowerCase()===itemName.toLowerCase());
+  // find or create library item (scoped per type, so "Freelance" as income
+  // doesn't collide with an expense item of the same name)
+  let libItem = items.find(i=>i.name.toLowerCase()===itemName.toLowerCase() && (i.type||'expense')===type);
   if(!libItem){
-    libItem = { id: uid(), name: itemName, category };
+    libItem = { id: uid(), name: itemName, category, type };
     items.push(libItem);
   } else if(!libItem.category){
     libItem.category = category;
@@ -788,11 +978,11 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
 
   if(editingExpenseId){
     const e = expenses.find(x=>x.id===editingExpenseId);
-    Object.assign(e, { itemName, amount, date, category, paymentMethod });
-    showToast('Expense updated');
+    Object.assign(e, { itemName, amount, date, category, paymentMethod, type });
+    showToast(type==='income' ? 'Income updated' : 'Expense updated');
   } else {
-    expenses.push({ id: uid(), itemName, amount, date, category, paymentMethod, createdAt: Date.now() });
-    showToast('Expense added');
+    expenses.push({ id: uid(), itemName, amount, date, category, paymentMethod, type, createdAt: Date.now() });
+    showToast(type==='income' ? 'Income added' : 'Expense added');
   }
   await saveData();
   closeExpenseModal();
@@ -809,19 +999,30 @@ window.deleteExpense = async function(id){
 
 /* ---------- Filters & tabs ---------- */
 $('searchInput').addEventListener('input', renderTransactions);
+$('filterType').addEventListener('change', renderTransactions);
 $('filterCategory').addEventListener('change', renderTransactions);
 $('filterFrom').addEventListener('change', renderTransactions);
 $('filterTo').addEventListener('change', renderTransactions);
 $('clearFilters').addEventListener('click', ()=>{
-  $('searchInput').value=''; $('filterCategory').value=''; $('filterFrom').value=''; $('filterTo').value='';
+  $('searchInput').value=''; $('filterType').value=''; $('filterCategory').value=''; $('filterFrom').value=''; $('filterTo').value='';
   renderTransactions();
 });
 
 $('overviewCategory').addEventListener('change', renderOverview);
 
+$('overviewTypeTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('#overviewTypeTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  overviewType = btn.dataset.type;
+  $('overviewCategory').value = '';
+  populateCategoryFilter();
+  renderOverview();
+});
+
 $('periodTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#periodTabs .tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   period = btn.dataset.period;
   renderOverview();
@@ -849,7 +1050,8 @@ $('importFile').addEventListener('change', (e)=>{
   e.target.value = '';
 });
 
-$('openAddBtn').addEventListener('click', openAddExpense);
+$('openAddBtn').addEventListener('click', ()=>openAddModal('expense'));
+$('openAddIncomeBtn').addEventListener('click', ()=>openAddModal('income'));
 $('cancelExpenseBtn').addEventListener('click', closeExpenseModal);
 document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', (e)=>{ if(e.target===ov) ov.classList.remove('open'); });
