@@ -183,8 +183,35 @@ body{
 .btn-primary{flex:1;background:var(--green);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);padding:11px 16px;border-radius:8px;font-size:14px;cursor:pointer;}
 
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;}
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;}
 .toast.show{opacity:1;}
+
+body{padding-bottom:78px;}
+.page{display:none;}
+.page.active{display:block;}
+
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:var(--paper-card);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;align-items:flex-end;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));
+  box-shadow:0 -4px 16px rgba(28,43,57,0.06);
+}
+.nav-item{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;padding:4px 10px;letter-spacing:0.01em;
+}
+.nav-item .nav-icon{font-size:19px;line-height:1;}
+.nav-item.active{color:#7C3AED;}
+.nav-fab{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg, #4F46E5, #7C3AED);
+  color:#fff;border:none;display:flex;align-items:center;justify-content:center;
+  font-size:26px;line-height:1;cursor:pointer;margin-top:-26px;
+  box-shadow:0 8px 18px rgba(124,58,237,0.45);
+}
+.pay-method-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
 
 @media(max-width:720px){
   .stats{grid-template-columns:repeat(2,1fr);}
@@ -198,6 +225,8 @@ body{
   .tx-tag,.tx-pay{grid-column:1/2;}
   .tx-actions{grid-column:2/3;grid-row:1/3;align-self:start;}
   .field-row{grid-template-columns:1fr;}
+  .nav-item{padding:4px 6px;font-size:9.5px;}
+  .nav-item .nav-icon{font-size:18px;}
 }
 </style>
 </head>
@@ -209,16 +238,9 @@ body{
       <h1><span class="mark">₹</span>Ledger</h1>
       <p>Track what you spend and earn, one line at a time.</p>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <button class="btn-ghost" id="syncBtn" style="background:var(--paper-card);font-family:'IBM Plex Mono',monospace;">🔄 <span id="syncLabel">Set up sync</span></button>
-      <button class="btn-ghost" id="exportBtn" style="background:var(--paper-card);">⬇ Backup</button>
-      <button class="btn-ghost" id="importBtn" style="background:var(--paper-card);">⬆ Restore</button>
-      <input type="file" id="importFile" accept="application/json" style="display:none;"/>
-      <button class="add-btn expense" id="openAddBtn">+ Expense</button>
-      <button class="add-btn income" id="openAddIncomeBtn">+ Income</button>
-    </div>
   </div>
 
+  <div id="page-home" class="page active">
   <div class="hero-card">
     <div class="hero-label">Balance this month</div>
     <div class="hero-amount" id="statBalanceMonth">—</div>
@@ -263,7 +285,10 @@ body{
       </div>
     </div>
   </div>
+  </div>
+  <!-- /page-home -->
 
+  <div id="page-insight" class="page">
   <div class="section">
     <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
     <div class="section-body">
@@ -277,7 +302,10 @@ body{
       <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
+  </div>
+  <!-- /page-insight -->
 
+  <div id="page-transactions" class="page">
   <div class="section">
     <div class="section-head"><h2 class="section-title">🧾 Transactions</h2></div>
     <div class="section-body">
@@ -300,8 +328,53 @@ body{
       <button class="clear-btn" id="toggleTxLimit" style="margin-top:12px;display:none;width:100%;"></button>
     </div>
   </div>
+  </div>
+  <!-- /page-transactions -->
+
+  <div id="page-settings" class="page">
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or account — and pick it when logging a transaction.</div>
+      <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+      <div class="filters" style="margin-bottom:0;">
+        <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
+        <button class="btn-primary" id="addPaymentBtn" style="flex:none;padding:9px 18px;">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">🔄 Sync Across Devices</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Set a private sync code, then use the exact same code on your other devices.</div>
+      <button class="btn-ghost" id="syncBtn" style="background:var(--paper);font-family:'IBM Plex Mono',monospace;">🔄 <span id="syncLabel">Set up sync</span></button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">💾 Backup &amp; Restore</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Download everything as a file, or restore from one.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-ghost" id="exportBtn" style="background:var(--paper);">⬇ Backup</button>
+        <button class="btn-ghost" id="importBtn" style="background:var(--paper);">⬆ Restore</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none;"/>
+      </div>
+    </div>
+  </div>
+  </div>
+  <!-- /page-settings -->
 
 </div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span>Home</button>
+  <button class="nav-item" data-page="insight"><span class="nav-icon">📈</span>Insight</button>
+  <button class="nav-fab" id="fabAddBtn" title="Add expense or income">+</button>
+  <button class="nav-item" data-page="transactions"><span class="nav-icon">🧾</span>Transactions</button>
+  <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>Settings</button>
+</nav>
 
 <!-- Add/Edit Expense Modal -->
 <div class="overlay" id="expenseOverlay">
@@ -334,13 +407,8 @@ body{
       </div>
       <div class="field">
         <label>Payment method</label>
-        <select id="fPayment">
-          <option>Cash</option>
-          <option>Card</option>
-          <option>UPI</option>
-          <option>Bank Transfer</option>
-          <option>Other</option>
-        </select>
+        <select id="fPayment"></select>
+        <input type="text" id="fPaymentNew" placeholder="e.g. Visa •••• 4582" style="margin-top:8px;display:none;"/>
       </div>
     </div>
     <div class="modal-actions">
@@ -387,8 +455,11 @@ function categoryIcon(cat, type){
   return type === 'income' ? '💵' : '🏷️';
 }
 const NEW_CAT_VALUE = '__new__';
+const NEW_PAY_VALUE = '__new_pay__';
+const DEFAULT_PAYMENT_METHODS = ['Cash','Card','UPI','Bank Transfer','Other'];
 let items = [];
 let expenses = [];
+let paymentMethods = [...DEFAULT_PAYMENT_METHODS];
 let period = 'daily';
 let overviewType = 'expense';
 let currentFormType = 'expense';
@@ -432,6 +503,13 @@ function updateSyncLabel(){
   $('syncLabel').textContent = syncCode ? `Synced: ${syncCode}` : 'Set up sync';
 }
 
+function resolvePaymentMethods(list, expenseList){
+  const base = Array.isArray(list) && list.length ? [...list] : [...DEFAULT_PAYMENT_METHODS];
+  const used = [...new Set((expenseList||[]).map(e=>e.paymentMethod).filter(Boolean))];
+  used.forEach(p=>{ if(!base.includes(p)) base.push(p); });
+  return base;
+}
+
 function connectSync(code){
   syncCode = code.trim();
   localStorage.setItem('ledger-sync-code', syncCode);
@@ -446,12 +524,13 @@ function connectSync(code){
       applyingRemote = true;
       items = withDefaultType(data.items);
       expenses = withDefaultType(data.expenses);
-      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses }));
+      paymentMethods = resolvePaymentMethods(data.paymentMethods, expenses);
+      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods }));
       renderAll();
       applyingRemote = false;
     } else {
       // first time this code is used — seed it with whatever's local
-      ref.set({ items, expenses });
+      ref.set({ items, expenses, paymentMethods });
     }
   }, (err)=>{
     showToast("Sync error — check your connection.");
@@ -465,23 +544,24 @@ function withDefaultType(list){
 async function loadData(){
   try{
     const raw = localStorage.getItem('ledger-data');
-    const parsed = raw ? JSON.parse(raw) : { items: [], expenses: [] };
+    const parsed = raw ? JSON.parse(raw) : { items: [], expenses: [], paymentMethods: [] };
     items = withDefaultType(parsed.items);
     expenses = withDefaultType(parsed.expenses);
+    paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
   }catch(e){
-    items = []; expenses = [];
+    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS];
   }
 }
 
 async function saveData(){
   try{
-    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses }));
+    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods }));
   }catch(e){
     showToast("Couldn't save locally — your browser storage may be full.");
   }
   if(db && syncCode && !applyingRemote){
     try{
-      await db.collection('ledger').doc(syncCode).set({ items, expenses });
+      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods });
     }catch(e){
       showToast("Saved locally — cloud sync failed.");
     }
@@ -489,7 +569,7 @@ async function saveData(){
 }
 
 function exportBackup(){
-  const blob = new Blob([JSON.stringify({ items, expenses }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `ledger-backup-${todayStr()}.json`;
@@ -505,7 +585,8 @@ function importBackup(file){
       const parsed = JSON.parse(e.target.result);
       if(!Array.isArray(parsed.items) || !Array.isArray(parsed.expenses)) throw new Error('bad shape');
       if(!confirm('This will replace your current data with the backup file. Continue?')) return;
-      items = parsed.items; expenses = parsed.expenses;
+      items = withDefaultType(parsed.items); expenses = withDefaultType(parsed.expenses);
+      paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
       await saveData();
       renderAll();
       showToast('Backup restored');
@@ -600,6 +681,66 @@ function readCategoryValue(containerEl, newInputEl){
   }
   return containerEl.dataset.selected;
 }
+
+/* ---------- Payment method helpers ---------- */
+function fillPaymentSelect(selectEl, selected){
+  selectEl.innerHTML = paymentMethods.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')
+    + `<option value="${NEW_PAY_VALUE}">＋ Add new payment method…</option>`;
+  selectEl.value = (selected && paymentMethods.includes(selected)) ? selected : paymentMethods[0];
+}
+function wirePaymentToggle(selectEl, newInputEl){
+  const sync = () => {
+    if(selectEl.value === NEW_PAY_VALUE){
+      newInputEl.style.display = 'block';
+    } else {
+      newInputEl.style.display = 'none';
+    }
+  };
+  selectEl.onchange = sync;
+  sync();
+}
+function readPaymentValue(selectEl, newInputEl){
+  if(selectEl.value === NEW_PAY_VALUE){
+    return newInputEl.value.trim();
+  }
+  return selectEl.value;
+}
+
+function renderPaymentMethods(){
+  const el = $('paymentMethodList');
+  if(!el) return;
+  const usageCount = (p) => expenses.filter(e=>e.paymentMethod===p).length;
+  el.innerHTML = paymentMethods.map(p=>`
+    <div class="pay-method-row" data-pay="${escapeHtml(p)}">
+      <span style="flex:1;font-size:13.5px;">💳 ${escapeHtml(p)}</span>
+      <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
+      <button class="icon-btn danger pay-remove-btn" title="Remove">✕</button>
+    </div>`).join('');
+}
+$('paymentMethodList').addEventListener('click', async (ev)=>{
+  const btn = ev.target.closest('.pay-remove-btn'); if(!btn) return;
+  const row = btn.closest('.pay-method-row');
+  const p = row.dataset.pay;
+  if(paymentMethods.length <= 1){ showToast('Keep at least one payment method'); return; }
+  if(!confirm(`Remove "${p}"? Past transactions keep this label, but you won't be able to pick it for new ones.`)) return;
+  paymentMethods = paymentMethods.filter(x=>x!==p);
+  await saveData();
+  renderPaymentMethods();
+  showToast('Payment method removed');
+});
+$('addPaymentBtn').addEventListener('click', async ()=>{
+  const val = $('newPaymentInput').value.trim();
+  if(!val){ showToast('Enter a payment method name'); return; }
+  if(paymentMethods.some(p=>p.toLowerCase()===val.toLowerCase())){ showToast('That one already exists'); return; }
+  paymentMethods.push(val);
+  $('newPaymentInput').value = '';
+  await saveData();
+  renderPaymentMethods();
+  showToast('Payment method added');
+});
+$('newPaymentInput').addEventListener('keydown', (ev)=>{
+  if(ev.key === 'Enter') $('addPaymentBtn').click();
+});
 
 /* ---------- Dashboard stats ---------- */
 function moneySigned(n){
@@ -881,6 +1022,7 @@ function renderAll(){
   renderWeeklyTrend();
   populateCategoryFilter();
   renderTransactions();
+  renderPaymentMethods();
   refreshDatalists();
 }
 
@@ -900,7 +1042,9 @@ function openAddModal(type){
   applyFormType(type, null);
   $('expenseModalTitle').textContent = type==='income' ? 'Add Income' : 'Add Expense';
   $('fItemName').value=''; $('fAmount').value=''; $('fDate').value=todayStr();
-  $('fPayment').value='Cash';
+  $('fPaymentNew').value = '';
+  fillPaymentSelect($('fPayment'), 'Cash');
+  wirePaymentToggle($('fPayment'), $('fPaymentNew'));
   $('expenseOverlay').classList.add('open');
   setTimeout(()=>$('fItemName').focus(),50);
 }
@@ -911,7 +1055,9 @@ window.openEditExpense = function(id){
   applyFormType(type, e.category);
   $('expenseModalTitle').textContent = type==='income' ? 'Edit Income' : 'Edit Expense';
   $('fItemName').value=e.itemName; $('fAmount').value=e.amount; $('fDate').value=e.date;
-  $('fPayment').value=e.paymentMethod;
+  $('fPaymentNew').value = '';
+  fillPaymentSelect($('fPayment'), e.paymentMethod);
+  wirePaymentToggle($('fPayment'), $('fPaymentNew'));
   $('expenseOverlay').classList.add('open');
 }
 function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
@@ -961,10 +1107,11 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
   const date = $('fDate').value || todayStr();
   const type = currentFormType;
   const category = readCategoryValue($('fCategoryPicker'), $('fCategoryNew')) || 'Uncategorized';
-  const paymentMethod = $('fPayment').value;
+  const paymentMethod = readPaymentValue($('fPayment'), $('fPaymentNew')) || 'Cash';
 
   if(!itemName){ showToast('Enter a name'); return; }
   if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
+  if(!paymentMethod){ showToast('Enter a payment method'); return; }
 
   // find or create library item (scoped per type, so "Freelance" as income
   // doesn't collide with an expense item of the same name)
@@ -974,6 +1121,10 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
     items.push(libItem);
   } else if(!libItem.category){
     libItem.category = category;
+  }
+
+  if(!paymentMethods.some(p=>p.toLowerCase()===paymentMethod.toLowerCase())){
+    paymentMethods.push(paymentMethod);
   }
 
   if(editingExpenseId){
@@ -1050,9 +1201,26 @@ $('importFile').addEventListener('change', (e)=>{
   e.target.value = '';
 });
 
-$('openAddBtn').addEventListener('click', ()=>openAddModal('expense'));
-$('openAddIncomeBtn').addEventListener('click', ()=>openAddModal('income'));
 $('cancelExpenseBtn').addEventListener('click', closeExpenseModal);
+$('fabAddBtn').addEventListener('click', ()=>openAddModal('expense'));
+
+/* ---------- Bottom nav / page switching ---------- */
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = $('page-' + page);
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
+  // Chart.js sizes canvases from their visible container, so a chart drawn
+  // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
+  if(page === 'home') renderOverview();
+  if(page === 'insight') renderWeeklyTrend();
+  if(page === 'transactions') renderTransactions();
+  if(page === 'settings') renderPaymentMethods();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
+  btn.addEventListener('click', ()=>showPage(btn.dataset.page));
+});
 document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', (e)=>{ if(e.target===ov) ov.classList.remove('open'); });
 });
