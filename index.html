@@ -302,6 +302,37 @@ body{padding-bottom:78px;}
       <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">🥧 Category Breakdown</h2></div>
+    <div class="section-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div class="tabs" id="insightCatTypeTabs" style="margin-bottom:0;">
+          <button class="tab active" data-type="expense">Expenses</button>
+          <button class="tab" data-type="income">Income</button>
+        </div>
+        <div style="font-size:12.5px;color:var(--ink-soft);">This month</div>
+      </div>
+      <div class="overview-grid">
+        <div class="cat-rows" id="insightCatRows"></div>
+        <div class="chart-box"><canvas id="insightCatChart"></canvas><div class="empty-note" id="insightCatEmpty" style="display:none;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">💳 By Payment Method</h2></div>
+    <div class="section-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div style="font-size:13px;color:var(--ink-soft);">Which card, cash, or account moves the most — this month</div>
+        <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:5px;"></span>Income</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--coral);margin-right:5px;"></span>Expenses</span>
+        </div>
+      </div>
+      <div class="chart-box" style="height:240px;"><canvas id="paymentMethodChart"></canvas><div class="empty-note" id="paymentMethodEmpty" style="display:none;"></div></div>
+    </div>
+  </div>
   </div>
   <!-- /page-insight -->
 
@@ -466,6 +497,9 @@ let currentFormType = 'expense';
 let editingExpenseId = null;
 let chartInstance = null;
 let weeklyTrendChartInstance = null;
+let insightCatChartInstance = null;
+let insightCatType = 'expense';
+let paymentMethodChartInstance = null;
 
 function hashStr(s){ let h=0; for(let i=0;i<String(s).length;i++){ h = (h*31 + String(s).charCodeAt(i))|0; } return Math.abs(h); }
 
@@ -1015,11 +1049,106 @@ function renderWeeklyTrend(){
   }
 }
 
+/* ---------- Insight: category breakdown pie (this month) ---------- */
+function renderInsightCategoryChart(){
+  const [mf] = periodRange('monthly');
+  const inRange = expenses.filter(e=>e.date>=mf && e.date<=todayStr() && (e.type||'expense')===insightCatType);
+  const byCat = {};
+  inRange.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const total = catEntries.reduce((s,c)=>s+c[1],0);
+
+  const rowsEl = $('insightCatRows');
+  rowsEl.innerHTML = catEntries.length ? catEntries.map(([cat,amt])=>{
+    const color = categoryColor(cat, insightCatType);
+    const pct = total ? Math.round((amt/total)*100) : 0;
+    return `
+    <div class="cat-row">
+      <span class="cat-icon-circle" style="background:${color}26;">${categoryIcon(cat, insightCatType)}</span>
+      <span class="name">${escapeHtml(cat)}</span>
+      <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${Math.max(6,pct)}%;background:${color};"></div></div>
+      <span class="amt">${money(amt)} <span style="color:var(--ink-soft);font-size:11px;">(${pct}%)</span></span>
+    </div>`;
+  }).join('') : `<div class="empty-note">No ${insightCatType} logged this month.</div>`;
+
+  const canvas = $('insightCatChart'); const emptyNote = $('insightCatEmpty');
+  if(insightCatChartInstance){ try{ insightCatChartInstance.destroy(); }catch(e){} insightCatChartInstance = null; }
+  if(typeof Chart === 'undefined'){
+    canvas.style.display='none'; emptyNote.style.display='block';
+    emptyNote.textContent = 'Chart unavailable right now — the breakdown above is still accurate.';
+  } else if(catEntries.length===0){
+    canvas.style.display='none'; emptyNote.style.display='block';
+    emptyNote.textContent = `No ${insightCatType} logged this month.`;
+  } else {
+    canvas.style.display='block'; emptyNote.style.display='none';
+    try{
+      insightCatChartInstance = new Chart(canvas.getContext('2d'), {
+        type:'pie',
+        data:{
+          labels: catEntries.map(c=>c[0]),
+          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], insightCatType)), borderColor:'#F8F9F5', borderWidth:2 }]
+        },
+        options:{ plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.label}: ${money(ctx.parsed)}` } } } }
+      });
+    }catch(e){
+      canvas.style.display='none'; emptyNote.style.display='block';
+      emptyNote.textContent = 'Chart unavailable right now — the breakdown above is still accurate.';
+    }
+  }
+}
+
+/* ---------- Insight: spend/earn by payment method (this month) ---------- */
+function renderPaymentMethodChart(){
+  const [mf] = periodRange('monthly');
+  const inRange = expenses.filter(e=>e.date>=mf && e.date<=todayStr());
+  const methods = [...new Set([...paymentMethods, ...inRange.map(e=>e.paymentMethod)])];
+  const data = methods.map(m=>{
+    const income = inRange.filter(e=>e.paymentMethod===m && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
+    const expense = inRange.filter(e=>e.paymentMethod===m && (e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
+    return { method:m, income, expense };
+  }).filter(d=>d.income>0 || d.expense>0)
+    .sort((a,b)=> (b.income+b.expense) - (a.income+a.expense));
+
+  const canvas = $('paymentMethodChart'); const emptyNote = $('paymentMethodEmpty');
+  if(paymentMethodChartInstance){ try{ paymentMethodChartInstance.destroy(); }catch(e){} paymentMethodChartInstance = null; }
+  if(typeof Chart === 'undefined'){
+    canvas.style.display='none'; emptyNote.style.display='block';
+    emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('') || 'No transactions logged this month.';
+  } else if(data.length===0){
+    canvas.style.display='none'; emptyNote.style.display='block';
+    emptyNote.textContent = 'No transactions logged this month.';
+  } else {
+    canvas.style.display='block'; emptyNote.style.display='none';
+    try{
+      paymentMethodChartInstance = new Chart(canvas.getContext('2d'), {
+        type:'bar',
+        data:{
+          labels: data.map(d=>d.method),
+          datasets:[
+            { label:'Income', data: data.map(d=>d.income), backgroundColor:'#2F6F4E', borderRadius:6, maxBarThickness:28 },
+            { label:'Expenses', data: data.map(d=>d.expense), backgroundColor:'#C4432B', borderRadius:6, maxBarThickness:28 },
+          ]
+        },
+        options:{
+          indexAxis:'y',
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.x)}` } } },
+          scales:{ x:{ beginAtZero:true, ticks:{ callback:(v)=>'₹'+v } } },
+        }
+      });
+    }catch(e){
+      canvas.style.display='none'; emptyNote.style.display='block';
+      emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('');
+    }
+  }
+}
+
 /* ---------- Render all ---------- */
 function renderAll(){
   renderStats();
   renderOverview();
   renderWeeklyTrend();
+  renderInsightCategoryChart();
+  renderPaymentMethodChart();
   populateCategoryFilter();
   renderTransactions();
   renderPaymentMethods();
@@ -1171,6 +1300,14 @@ $('overviewTypeTabs').addEventListener('click', (ev)=>{
   renderOverview();
 });
 
+$('insightCatTypeTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('#insightCatTypeTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  insightCatType = btn.dataset.type;
+  renderInsightCategoryChart();
+});
+
 $('periodTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
   document.querySelectorAll('#periodTabs .tab').forEach(t=>t.classList.remove('active'));
@@ -1213,7 +1350,7 @@ function showPage(page){
   // Chart.js sizes canvases from their visible container, so a chart drawn
   // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
   if(page === 'home') renderOverview();
-  if(page === 'insight') renderWeeklyTrend();
+  if(page === 'insight'){ renderWeeklyTrend(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
   if(page === 'transactions') renderTransactions();
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
