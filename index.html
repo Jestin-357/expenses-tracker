@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
+<script>try{if(localStorage.getItem("ledger-theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
@@ -58,7 +59,7 @@ body{
 }
 .brand p{margin:4px 0 0;color:var(--ink-soft);font-size:14px;}
 .add-btn{
-  background:var(--green);color:#fff;border:none;padding:13px 22px;border-radius:8px;
+  background:var(--btn-green);color:#fff;border:none;padding:13px 22px;border-radius:8px;
   font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:14.5px;cursor:pointer;
   display:flex;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(0,0,0,0.15);
   transition:transform .12s ease;
@@ -213,7 +214,7 @@ body{
 .item-suggest-row:hover,.item-suggest-row.active{background:var(--paper);}
 .item-suggest-row .sugg-cat{color:var(--ink-soft);font-size:11px;flex-shrink:0;}
 .modal-actions{display:flex;gap:10px;margin-top:18px;}
-.btn-primary{flex:1;background:var(--green);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;}
+.btn-primary{flex:1;background:var(--btn-green);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);padding:11px 16px;border-radius:8px;font-size:14px;cursor:pointer;}
 
 .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;}
@@ -261,6 +262,64 @@ body{padding-bottom:78px;}
   .nav-item{padding:4px 6px;font-size:9.5px;}
   .nav-item .nav-icon{font-size:18px;}
 }
+
+/* ---------- Insight page styling ---------- */
+#insightPeriodTabs{background:linear-gradient(135deg,#EEF0FF,#F6ECFF);border:1px solid #DCD9F5;border-radius:999px;padding:4px;gap:4px;}
+#insightPeriodTabs .tab{flex:1;text-align:center;border-radius:999px;padding:9px 6px;color:#5B5F8A;}
+#insightPeriodTabs .tab.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;box-shadow:0 6px 14px rgba(124,58,237,0.35);}
+.ins-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+.ins-card{border-radius:16px;padding:14px 14px 13px;color:#fff;position:relative;overflow:hidden;}
+.ins-card::after{content:"";position:absolute;right:-18px;top:-18px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.16);}
+.ins-card.inc{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 8px 18px rgba(16,185,129,0.28);}
+.ins-card.exp{background:linear-gradient(135deg,#FB7185,#E11D48);box-shadow:0 8px 18px rgba(244,63,94,0.28);}
+.ins-card.net{background:linear-gradient(135deg,#6366F1,#9333EA);box-shadow:0 8px 18px rgba(99,102,241,0.30);}
+.ins-ico{font-size:18px;display:block;margin-bottom:6px;}
+.ins-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;opacity:0.9;}
+.ins-val{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-top:3px;word-break:break-word;}
+.ins-sub{font-size:10.5px;opacity:0.9;margin-top:3px;}
+#page-insight .section{border:none;border-radius:18px;box-shadow:0 6px 22px rgba(28,43,57,0.08);position:relative;}
+#page-insight .section::before{content:"";display:block;height:5px;background:var(--sec-grad,linear-gradient(90deg,#6366F1,#EC4899));}
+#page-insight .sec-trend{--sec-grad:linear-gradient(90deg,#10B981,#F43F5E);}
+#page-insight .sec-cat{--sec-grad:linear-gradient(90deg,#F59E0B,#EC4899,#8B5CF6);}
+#page-insight .sec-pay{--sec-grad:linear-gradient(90deg,#06B6D4,#6366F1);}
+#page-insight .section-title{font-size:18px;}
+#page-insight .tabs:not(#insightPeriodTabs) .tab.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;}
+@media(max-width:720px){ .ins-val{font-size:15px;} .ins-card{padding:12px 10px;} }
+
+/* ---------- Accounts / cards ---------- */
+.acct-total{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ink-soft);}
+.acct-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;}
+.acct-card{flex:0 0 auto;min-width:150px;max-width:210px;border-radius:16px;padding:14px 16px;color:#fff;scroll-snap-align:start;position:relative;overflow:hidden;box-shadow:0 8px 18px rgba(28,43,57,0.16);}
+.acct-card::after{content:"";position:absolute;right:-16px;top:-16px;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.16);}
+.acct-ico{font-size:19px;margin-bottom:8px;}
+.acct-name{font-size:12px;font-weight:600;opacity:0.92;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.acct-bal{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-top:3px;white-space:nowrap;}
+.pay-method-row{flex-wrap:wrap;}
+.pay-name{flex:1;font-size:13.5px;min-width:120px;}
+.pay-open-label{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
+.pay-opening{width:130px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--paper-card);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+
+/* ---------- Night mode ---------- */
+:root{--btn-green:#2F6F4E;--btn-coral:#C4432B;--btn-blue:#3457D5;}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0E1420;--paper-card:#172031;--ink:#E7ECF4;--ink-soft:#9BA7B8;--line:#2A3548;
+  --green:#34D399;--green-soft:#12352A;--coral:#FB7185;--coral-soft:#3B1D25;
+  --blue:#818CF8;--blue-soft:#232A55;--amber:#FBBF24;--amber-soft:#3A2F14;
+}
+:root[data-theme="dark"] body{background:radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px) 0 0/22px 22px, var(--paper);}
+:root[data-theme="dark"] .overlay{background:rgba(0,0,0,0.65);}
+:root[data-theme="dark"] .bottom-nav{box-shadow:0 -4px 16px rgba(0,0,0,0.4);}
+:root[data-theme="dark"] .nav-item.active{color:#A78BFA;}
+:root[data-theme="dark"] #insightPeriodTabs{background:linear-gradient(135deg,#1B2140,#26193F);border-color:#33396A;}
+:root[data-theme="dark"] #insightPeriodTabs .tab{color:#A9AEDD;}
+:root[data-theme="dark"] #insightPeriodTabs .tab.active{color:#fff;}
+:root[data-theme="dark"] #page-insight .section{box-shadow:0 6px 22px rgba(0,0,0,0.35);}
+:root[data-theme="dark"] .tab.active{background:#E7ECF4;color:#0E1420;}
+:root[data-theme="dark"] .tabs:not(#insightPeriodTabs) .tab.active{background:#E7ECF4;color:#0E1420;}
+:root[data-theme="dark"] #page-insight .tabs:not(#insightPeriodTabs) .tab.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;}
+:root[data-theme="dark"] .item-suggest{box-shadow:0 10px 24px rgba(0,0,0,0.5);}
+:root[data-theme="dark"] .acct-card{box-shadow:0 8px 18px rgba(0,0,0,0.4);}
 </style>
 </head>
 <body>
@@ -280,7 +339,18 @@ body{padding-bottom:78px;}
     <div class="hero-subrow">
       <div class="hero-pill"><span class="hero-pill-label">💰 Income</span><span class="hero-pill-value" id="statIncome">—</span></div>
       <div class="hero-pill"><span class="hero-pill-label">💸 Expenses</span><span class="hero-pill-value" id="statExpense">—</span></div>
-      <div class="hero-pill"><span class="hero-pill-label">🏦 All-time</span><span class="hero-pill-value" id="statBalanceAll">—</span></div>
+      <div class="hero-pill"><span class="hero-pill-label">🏦 Total balance</span><span class="hero-pill-value" id="statBalanceAll">—</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2 class="section-title">🏦 Cards &amp; Accounts</h2>
+      <span class="acct-total" id="acctTotal"></span>
+    </div>
+    <div class="section-body">
+      <div class="acct-scroll" id="acctCards"></div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances in Settings.</div>
     </div>
   </div>
 
@@ -322,21 +392,34 @@ body{padding-bottom:78px;}
   <!-- /page-home -->
 
   <div id="page-insight" class="page">
-  <div class="section">
+  <div class="tabs" id="insightPeriodTabs" style="margin-bottom:18px;">
+    <button class="tab" data-period="weekly">Weekly</button>
+    <button class="tab active" data-period="monthly">Monthly</button>
+    <button class="tab" data-period="quarterly">Quarterly</button>
+    <button class="tab" data-period="yearly">Yearly</button>
+  </div>
+
+  <div class="ins-summary">
+    <div class="ins-card inc"><span class="ins-ico">💰</span><div class="ins-lbl">Income</div><div class="ins-val" id="insIncome">—</div></div>
+    <div class="ins-card exp"><span class="ins-ico">💸</span><div class="ins-lbl">Expenses</div><div class="ins-val" id="insExpense">—</div></div>
+    <div class="ins-card net"><span class="ins-ico">✨</span><div class="ins-lbl">Net</div><div class="ins-val" id="insNet">—</div><div class="ins-sub" id="insSub"></div></div>
+  </div>
+
+  <div class="section sec-trend">
     <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
     <div class="section-body">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--ink-soft);">This week vs. the 3 weeks before it (Sunday–Saturday)</div>
+        <div style="font-size:13px;color:var(--ink-soft);" id="trendPeriodLabel">This week vs. the 3 weeks before it</div>
         <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:5px;"></span>Income</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--coral);margin-right:5px;"></span>Expenses</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
         </div>
       </div>
       <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
 
-  <div class="section">
+  <div class="section sec-cat">
     <div class="section-head"><h2 class="section-title">🥧 Category Breakdown</h2></div>
     <div class="section-body">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
@@ -344,7 +427,7 @@ body{padding-bottom:78px;}
           <button class="tab active" data-type="expense">Expenses</button>
           <button class="tab" data-type="income">Income</button>
         </div>
-        <div style="font-size:12.5px;color:var(--ink-soft);">This month</div>
+        <div style="font-size:12.5px;color:var(--ink-soft);" id="insightCatPeriodLabel">This month</div>
       </div>
       <div class="overview-grid">
         <div class="cat-rows" id="insightCatRows"></div>
@@ -353,14 +436,14 @@ body{padding-bottom:78px;}
     </div>
   </div>
 
-  <div class="section">
+  <div class="section sec-pay">
     <div class="section-head"><h2 class="section-title">💳 By Payment Method</h2></div>
     <div class="section-body">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--ink-soft);">Which card, cash, or account moves the most — this month</div>
+        <div style="font-size:13px;color:var(--ink-soft);" id="paymentMethodPeriodLabel">Which card, cash, or account moves the most — this month</div>
         <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);margin-right:5px;"></span>Income</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--coral);margin-right:5px;"></span>Expenses</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
         </div>
       </div>
       <div class="chart-box" style="height:240px;"><canvas id="paymentMethodChart"></canvas><div class="empty-note" id="paymentMethodEmpty" style="display:none;"></div></div>
@@ -379,6 +462,7 @@ body{padding-bottom:78px;}
           <option value="">All types</option>
           <option value="expense">Expenses</option>
           <option value="income">Income</option>
+          <option value="transfer">Transfers</option>
         </select>
         <select id="filterCategory"><option value="">All categories</option></select>
         <input type="date" id="filterFrom" title="From date"/>
@@ -397,9 +481,20 @@ body{padding-bottom:78px;}
 
   <div id="page-settings" class="page">
   <div class="section">
+    <div class="section-head"><h2 class="section-title">🌗 Appearance</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Choose Day or Night mode. This is remembered on this device.</div>
+      <div class="tabs" id="themeTabs">
+        <button class="tab" data-theme="light" type="button">☀️ Day</button>
+        <button class="tab" data-theme="dark" type="button">🌙 Night</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or account — and pick it when logging a transaction.</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate.</div>
       <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
       <div class="filters" style="margin-bottom:0;">
         <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
@@ -447,8 +542,9 @@ body{padding-bottom:78px;}
     <div class="tabs" id="formTypeTabs" style="margin-bottom:16px;">
       <button class="tab active" data-type="expense" type="button">Expense</button>
       <button class="tab" data-type="income" type="button">Income</button>
+      <button class="tab" data-type="transfer" type="button">Transfer</button>
     </div>
-    <div class="field">
+    <div class="field" id="fItemWrap">
       <label>Item name(s)</label>
       <div class="tag-input-wrap">
         <div class="tag-input" id="fItemTagInput">
@@ -469,15 +565,20 @@ body{padding-bottom:78px;}
       </div>
     </div>
     <div class="field-row">
-      <div class="field">
+      <div class="field" id="fCategoryWrap">
         <label>Category</label>
         <div class="cat-picker" id="fCategoryPicker"></div>
         <input type="text" id="fCategoryNew" placeholder="Type new category name" style="margin-top:8px;display:none;"/>
       </div>
       <div class="field">
-        <label>Payment method</label>
+        <label id="fPaymentLabel">Payment method</label>
         <select id="fPayment"></select>
         <input type="text" id="fPaymentNew" placeholder="e.g. Visa •••• 4582" style="margin-top:8px;display:none;"/>
+      </div>
+      <div class="field" id="fToWrap" style="display:none;">
+        <label>To account</label>
+        <select id="fToAccount"></select>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">Add accounts under Settings → Payment Methods.</div>
       </div>
     </div>
     <div class="modal-actions">
@@ -509,7 +610,7 @@ body{padding-bottom:78px;}
 <div class="toast" id="toast"></div>
 
 <script>
-const CATEGORY_COLORS = ['#2F6F4E','#3457D5','#C4432B','#B8862B','#7A5CC1','#1C8C9E','#C24E86','#5B7B3A'];
+const CATEGORY_COLORS = ['#10B981','#6366F1','#F43F5E','#F59E0B','#8B5CF6','#06B6D4','#EC4899','#84CC16'];
 const CATEGORIES_BY_TYPE = {
   expense: ['Food','Groceries','Transport','Utilities','Entertainment','Health','Shopping','Rent','Other'],
   income: ['Salary','Freelance','Business','Investment','Gift','Refund','Other'],
@@ -529,6 +630,7 @@ const DEFAULT_PAYMENT_METHODS = ['Cash','Card','UPI','Bank Transfer','Other'];
 let items = [];
 let expenses = [];
 let paymentMethods = [...DEFAULT_PAYMENT_METHODS];
+let openingBalances = {};
 let period = 'daily';
 let overviewType = 'expense';
 let currentFormType = 'expense';
@@ -538,12 +640,23 @@ let chartInstance = null;
 let weeklyTrendChartInstance = null;
 let insightCatChartInstance = null;
 let insightCatType = 'expense';
+let insightPeriod = 'monthly';
 let paymentMethodChartInstance = null;
 
 function hashStr(s){ let h=0; for(let i=0;i<String(s).length;i++){ h = (h*31 + String(s).charCodeAt(i))|0; } return Math.abs(h); }
 
 const $ = (id) => document.getElementById(id);
 
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function currentTheme(){ try{ return localStorage.getItem('ledger-theme') === 'dark' ? 'dark' : 'light'; }catch(e){ return 'light'; } }
+function applyTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  document.querySelectorAll('#themeTabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.theme === mode));
+  if(typeof Chart !== 'undefined'){
+    Chart.defaults.color = mode === 'dark' ? '#9BA7B8' : '#54606B';
+    Chart.defaults.borderColor = mode === 'dark' ? '#2A3548' : 'rgba(0,0,0,0.1)';
+  }
+}
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function todayStr(){ return toStr(new Date()); }
 function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -578,7 +691,7 @@ function updateSyncLabel(){
 
 function resolvePaymentMethods(list, expenseList){
   const base = Array.isArray(list) && list.length ? [...list] : [...DEFAULT_PAYMENT_METHODS];
-  const used = [...new Set((expenseList||[]).map(e=>e.paymentMethod).filter(Boolean))];
+  const used = [...new Set((expenseList||[]).flatMap(e=>[e.paymentMethod, e.toMethod]).filter(Boolean))];
   used.forEach(p=>{ if(!base.includes(p)) base.push(p); });
   return base;
 }
@@ -598,12 +711,13 @@ function connectSync(code){
       items = withDefaultType(data.items);
       expenses = withDefaultType(data.expenses);
       paymentMethods = resolvePaymentMethods(data.paymentMethods, expenses);
-      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods }));
+      openingBalances = data.openingBalances || {};
+      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances }));
       renderAll();
       applyingRemote = false;
     } else {
       // first time this code is used — seed it with whatever's local
-      ref.set({ items, expenses, paymentMethods });
+      ref.set({ items, expenses, paymentMethods, openingBalances });
     }
   }, (err)=>{
     showToast("Sync error — check your connection.");
@@ -654,6 +768,7 @@ async function loadData(){
     items = withDefaultType(parsed.items);
     expenses = withDefaultType(parsed.expenses);
     paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
+    openingBalances = parsed.openingBalances || {};
     // Brand-new install (nothing saved, nothing synced down yet) — seed some
     // common item names so autocomplete has something to suggest immediately,
     // instead of staying empty until the person has typed each item once.
@@ -665,19 +780,19 @@ async function loadData(){
       items = seedItemLibrary();
     }
   }catch(e){
-    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS];
+    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS]; openingBalances = {};
   }
 }
 
 async function saveData(){
   try{
-    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods }));
+    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances }));
   }catch(e){
     showToast("Couldn't save locally — your browser storage may be full.");
   }
   if(db && syncCode && !applyingRemote){
     try{
-      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods });
+      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods, openingBalances });
     }catch(e){
       showToast("Saved locally — cloud sync failed.");
     }
@@ -685,7 +800,7 @@ async function saveData(){
 }
 
 function exportBackup(){
-  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods, openingBalances }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `ledger-backup-${todayStr()}.json`;
@@ -703,6 +818,7 @@ function importBackup(file){
       if(!confirm('This will replace your current data with the backup file. Continue?')) return;
       items = withDefaultType(parsed.items); expenses = withDefaultType(parsed.expenses);
       paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
+      openingBalances = parsed.openingBalances || {};
       await saveData();
       renderAll();
       showToast('Backup restored');
@@ -719,6 +835,7 @@ function startOfWeek(d){
   dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0); return dt;
 }
 function startOfMonth(d){ const dt=new Date(d); dt.setDate(1); dt.setHours(0,0,0,0); return dt; }
+function startOfQuarter(d){ const dt=new Date(d); dt.setMonth(Math.floor(dt.getMonth()/3)*3, 1); dt.setHours(0,0,0,0); return dt; }
 function startOfYear(d){ const dt=new Date(d); dt.setMonth(0,1); dt.setHours(0,0,0,0); return dt; }
 function toStr(d){
   // Local calendar date, not UTC — toISOString() converts to UTC first, which
@@ -735,6 +852,7 @@ function periodRange(p){
   if(p==='daily') return [todayStr(), todayStr()];
   if(p==='weekly') return [toStr(startOfWeek(now)), todayStr()];
   if(p==='monthly') return [toStr(startOfMonth(now)), todayStr()];
+  if(p==='quarterly') return [toStr(startOfQuarter(now)), todayStr()];
   if(p==='yearly') return [toStr(startOfYear(now)), todayStr()];
 }
 
@@ -825,14 +943,28 @@ function readPaymentValue(selectEl, newInputEl){
 function renderPaymentMethods(){
   const el = $('paymentMethodList');
   if(!el) return;
-  const usageCount = (p) => expenses.filter(e=>e.paymentMethod===p).length;
+  const usageCount = (p) => expenses.filter(e=>e.paymentMethod===p || e.toMethod===p).length;
+  const bal = accountBalances();
   el.innerHTML = paymentMethods.map(p=>`
     <div class="pay-method-row" data-pay="${escapeHtml(p)}">
-      <span style="flex:1;font-size:13.5px;">💳 ${escapeHtml(p)}</span>
+      <span class="pay-name">${acctIcon(p)} ${escapeHtml(p)}</span>
       <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
+      <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:${(bal[p]||0)<0?'var(--coral)':'var(--green)'};">${moneySigned(bal[p]||0)}</span>
       <button class="icon-btn danger pay-remove-btn" title="Remove">✕</button>
+      <label class="pay-open-label">Opening balance
+        <input type="number" step="0.01" class="pay-opening" placeholder="0.00" value="${openingBalances[p] ? openingBalances[p] : ''}" />
+      </label>
     </div>`).join('');
 }
+$('paymentMethodList').addEventListener('change', async (ev)=>{
+  const inp = ev.target.closest('.pay-opening'); if(!inp) return;
+  const p = inp.closest('.pay-method-row').dataset.pay;
+  const v = parseFloat(inp.value);
+  if(isNaN(v) || v === 0) delete openingBalances[p]; else openingBalances[p] = v;
+  await saveData();
+  renderAll();
+  showToast('Opening balance saved');
+});
 $('paymentMethodList').addEventListener('click', async (ev)=>{
   const btn = ev.target.closest('.pay-remove-btn'); if(!btn) return;
   const row = btn.closest('.pay-method-row');
@@ -840,6 +972,7 @@ $('paymentMethodList').addEventListener('click', async (ev)=>{
   if(paymentMethods.length <= 1){ showToast('Keep at least one payment method'); return; }
   if(!confirm(`Remove "${p}"? Past transactions keep this label, but you won't be able to pick it for new ones.`)) return;
   paymentMethods = paymentMethods.filter(x=>x!==p);
+  delete openingBalances[p];
   await saveData();
   renderPaymentMethods();
   showToast('Payment method removed');
@@ -866,6 +999,47 @@ function moneySigned(n){
 function sumByType(from, to, type){
   return expenses.filter(e=>e.date>=from && e.date<=to && (e.type||'expense')===type).reduce((s,e)=>s+Number(e.amount),0);
 }
+function accountBalances(){
+  // Balance = opening balance + income received − expenses paid, ± transfers.
+  // Transfers only move money between two accounts, so they never touch the
+  // income/expense totals — only these per-account balances.
+  const bal = {};
+  const add = (k, v) => { if(k) bal[k] = (bal[k] || 0) + v; };
+  paymentMethods.forEach(p => add(p, Number(openingBalances[p]) || 0));
+  expenses.forEach(e=>{
+    const t = e.type || 'expense', a = Number(e.amount) || 0;
+    if(t === 'income') add(e.paymentMethod, a);
+    else if(t === 'expense') add(e.paymentMethod, -a);
+    else if(t === 'transfer'){ add(e.paymentMethod, -a); add(e.toMethod, a); }
+  });
+  return bal;
+}
+const ACCT_GRADIENTS = [
+  'linear-gradient(135deg,#4F46E5,#7C3AED)','linear-gradient(135deg,#059669,#10B981)',
+  'linear-gradient(135deg,#E11D48,#FB7185)','linear-gradient(135deg,#0891B2,#22D3EE)',
+  'linear-gradient(135deg,#D97706,#FBBF24)','linear-gradient(135deg,#7C3AED,#EC4899)',
+];
+function acctIcon(name){
+  const n = String(name).toLowerCase();
+  if(/cash/.test(n)) return '💵';
+  if(/upi|pay|wallet/.test(n)) return '📱';
+  if(/bank|jp|rakuten|savings|account/.test(n)) return '🏦';
+  return '💳';
+}
+function renderAccounts(){
+  const el = $('acctCards'); if(!el) return;
+  const bal = accountBalances();
+  const names = Object.keys(bal);
+  const total = names.reduce((s,n)=>s+bal[n], 0);
+  $('acctTotal').textContent = 'Total ' + moneySigned(total);
+  el.innerHTML = names.map((n,i)=>`
+    <div class="acct-card" style="background:${ACCT_GRADIENTS[i % ACCT_GRADIENTS.length]}">
+      <div class="acct-ico">${acctIcon(n)}</div>
+      <div class="acct-name">${escapeHtml(n)}</div>
+      <div class="acct-bal">${moneySigned(bal[n])}</div>
+    </div>`).join('');
+}
+
 function renderStats(){
   const [mf] = periodRange('monthly');
   const incomeMonth = sumByType(mf, todayStr(), 'income');
@@ -876,9 +1050,8 @@ function renderStats(){
   $('statBalanceMonth').textContent = moneySigned(balMonth);
   $('statBalanceMonth').style.color = balMonth < 0 ? '#FFD9D2' : '#FFFFFF';
 
-  const totalIncomeAll = expenses.filter(e=>(e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
-  const totalExpenseAll = expenses.filter(e=>(e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
-  const balAll = totalIncomeAll - totalExpenseAll;
+  const balances = accountBalances();
+  const balAll = Object.keys(balances).reduce((s,n)=>s+balances[n], 0);
   $('statBalanceAll').textContent = moneySigned(balAll);
   $('statBalanceAll').style.color = balAll < 0 ? '#FFD9D2' : '#FFFFFF';
 }
@@ -954,7 +1127,7 @@ function renderOverview(){
         type:'doughnut',
         data:{
           labels: catEntries.map(c=>c[0]),
-          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], overviewType)), borderColor:'#F8F9F5', borderWidth:2 }]
+          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], overviewType)), borderColor:cssVar('--paper-card'), borderWidth:2 }]
         },
         options:{ plugins:{ legend:{ display:false } }, cutout:'62%' }
       });
@@ -970,6 +1143,25 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;
 
 function txRowHtml(e){
   const type = e.type || 'expense';
+  if(type === 'transfer'){
+    return `
+    <div class="tx-row">
+      <div class="tx-main" style="display:flex;align-items:center;gap:10px;">
+        <span class="cat-icon-circle" style="background:#6366F126;">🔁</span>
+        <div>
+          <div class="tx-item">${escapeHtml(e.paymentMethod)} → ${escapeHtml(e.toMethod||'')}</div>
+          <div class="tx-meta">${e.date}</div>
+        </div>
+      </div>
+      <div class="tx-tag" style="background:#6366F122;color:#6366F1">Transfer</div>
+      <div class="tx-pay">Internal</div>
+      <div class="tx-amt" style="color:#6366F1">⇄ ${money(e.amount)}</div>
+      <div class="tx-actions">
+        <button class="icon-btn" onclick="openEditExpense('${e.id}')" title="Edit">✎</button>
+        <button class="icon-btn danger" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }
   const isIncome = type === 'income';
   const color = categoryColor(e.category, type);
   return `
@@ -1029,11 +1221,14 @@ function renderTransactions(){
   if(type === 'income'){
     $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0));
     $('txTotal').style.color = 'var(--green)';
+  } else if(type === 'transfer'){
+    $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0)) + ' moved';
+    $('txTotal').style.color = '#6366F1';
   } else if(type === 'expense'){
     $('txTotal').textContent = money(list.reduce((s,e)=>s+Number(e.amount),0));
     $('txTotal').style.color = 'var(--ink)';
   } else {
-    const net = list.reduce((s,e)=> s + ((e.type||'expense')==='income' ? Number(e.amount) : -Number(e.amount)), 0);
+    const net = list.reduce((s,e)=>{ const t=e.type||'expense'; return s + (t==='income' ? Number(e.amount) : t==='expense' ? -Number(e.amount) : 0); }, 0);
     $('txTotal').textContent = moneySigned(net) + ' (net)';
     $('txTotal').style.color = net < 0 ? 'var(--coral)' : 'var(--green)';
   }
@@ -1176,31 +1371,97 @@ function weekRangeByOffset(weeksAgo){
   const end = new Date(start); end.setDate(end.getDate()+6);
   return [toStr(start), toStr(end)];
 }
+function trendBuckets(p){
+  const now = new Date();
+  if(p === 'weekly'){
+    return [3,2,1,0].map(offset=>{
+      const [start,end] = weekRangeByOffset(offset);
+      const label = offset===0 ? 'This week' : offset===1 ? 'Last week' : `${offset} weeks ago`;
+      return { label, start, end };
+    });
+  }
+  if(p === 'quarterly'){
+    return [3,2,1,0].map(offset=>{
+      const ref = new Date(now.getFullYear(), now.getMonth() - 3*offset, 1);
+      const qStartMonth = Math.floor(ref.getMonth()/3)*3;
+      const start = toStr(new Date(ref.getFullYear(), qStartMonth, 1));
+      let end = toStr(new Date(ref.getFullYear(), qStartMonth+3, 0));
+      if(offset===0) end = todayStr();
+      const label = `Q${Math.floor(qStartMonth/3)+1} ${ref.getFullYear()}`;
+      return { label, start, end };
+    });
+  }
+  if(p === 'yearly'){
+    return [3,2,1,0].map(offset=>{
+      const y = now.getFullYear() - offset;
+      const start = `${y}-01-01`;
+      const end = offset===0 ? todayStr() : `${y}-12-31`;
+      return { label: String(y), start, end };
+    });
+  }
+  // monthly (default) — last 6 calendar months, most recent capped at today
+  return [5,4,3,2,1,0].map(offset=>{
+    const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const start = toStr(startOfMonth(d));
+    let end = toStr(new Date(d.getFullYear(), d.getMonth()+1, 0));
+    if(offset===0) end = todayStr();
+    const label = d.toLocaleDateString('en-US', { month:'short', year: d.getFullYear()!==now.getFullYear() ? '2-digit' : undefined });
+    return { label, start, end };
+  });
+}
+function trendWindowDescription(p){
+  return {
+    weekly: 'This week vs. the 3 weeks before it (Sunday–Saturday)',
+    monthly: 'The last 6 months',
+    quarterly: 'This quarter vs. the 3 quarters before it',
+    yearly: 'This year vs. the 3 years before it',
+  }[p] || '';
+}
+function insightPeriodLabel(p){
+  return { weekly:'This week', monthly:'This month', quarterly:'This quarter', yearly:'This year' }[p] || 'This period';
+}
+
+function barGradient(ctx, c1, c2){
+  const g = ctx.createLinearGradient(0, 0, 0, 240);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+}
+function renderInsightSummary(){
+  const [pf, pt] = periodRange(insightPeriod);
+  const inc = sumByType(pf, pt, 'income');
+  const exp = sumByType(pf, pt, 'expense');
+  const net = inc - exp;
+  $('insIncome').textContent = money(inc);
+  $('insExpense').textContent = money(exp);
+  $('insNet').textContent = moneySigned(net);
+  $('insSub').textContent = inc > 0 ? (net >= 0 ? `Saved ${Math.round(net/inc*100)}% of income` : 'Spending more than earned') : insightPeriodLabel(insightPeriod);
+}
+
 function renderWeeklyTrend(){
-  const weeks = [3,2,1,0].map(weeksAgo=>{
-    const [start,end] = weekRangeByOffset(weeksAgo);
-    const income = expenses.filter(e=>e.date>=start && e.date<=end && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
-    const expense = expenses.filter(e=>e.date>=start && e.date<=end && (e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
-    const label = weeksAgo===0 ? 'This week' : weeksAgo===1 ? 'Last week' : `${weeksAgo} weeks ago`;
-    return { label, income, expense, range: `${start} – ${end}` };
+  renderInsightSummary();
+  $('trendPeriodLabel').textContent = trendWindowDescription(insightPeriod);
+  const buckets = trendBuckets(insightPeriod).map(b=>{
+    const income = expenses.filter(e=>e.date>=b.start && e.date<=b.end && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
+    const expense = expenses.filter(e=>e.date>=b.start && e.date<=b.end && (e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
+    return { ...b, income, expense, range: `${b.start} – ${b.end}` };
   });
 
   const canvasEl = $('weeklyTrendChart'); const fallbackEl = $('weeklyTrendEmpty');
   if(weeklyTrendChartInstance){ try{ weeklyTrendChartInstance.destroy(); }catch(e){} weeklyTrendChartInstance = null; }
 
-  const hasAny = weeks.some(w=>w.income>0 || w.expense>0);
+  const hasAny = buckets.some(w=>w.income>0 || w.expense>0);
   if(typeof Chart === 'undefined'){
     // Same CDN dependency as the category chart — degrade to a plain-text
     // breakdown instead of crashing the render if it didn't load.
     canvasEl.style.display = 'none';
     fallbackEl.style.display = 'block';
-    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
+    fallbackEl.innerHTML = buckets.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
     return;
   }
   if(!hasAny){
     canvasEl.style.display = 'none';
     fallbackEl.style.display = 'block';
-    fallbackEl.textContent = 'No income or expenses logged in the last 4 weeks.';
+    fallbackEl.textContent = `No income or expenses logged in this window.`;
     return;
   }
   canvasEl.style.display = 'block';
@@ -1211,16 +1472,16 @@ function renderWeeklyTrend(){
     weeklyTrendChartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: weeks.map(w=>w.label),
+        labels: buckets.map(w=>w.label),
         datasets: [
-          { label:'Income', data: weeks.map(w=>w.income), backgroundColor:'#2F6F4E', borderRadius:6, maxBarThickness:30 },
-          { label:'Expenses', data: weeks.map(w=>w.expense), backgroundColor:'#C4432B', borderRadius:6, maxBarThickness:30 },
+          { label:'Income', data: buckets.map(w=>w.income), backgroundColor:barGradient(ctx,'#34D399','#059669'), borderRadius:8, maxBarThickness:30 },
+          { label:'Expenses', data: buckets.map(w=>w.expense), backgroundColor:barGradient(ctx,'#FB7185','#E11D48'), borderRadius:8, maxBarThickness:30 },
         ],
       },
       options: {
         plugins: {
           legend: { display:false },
-          tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.y)}`, title: (items)=> weeks[items[0].dataIndex].range } },
+          tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.y)}`, title: (items)=> buckets[items[0].dataIndex].range } },
         },
         scales: {
           y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
@@ -1230,14 +1491,15 @@ function renderWeeklyTrend(){
   }catch(e){
     canvasEl.style.display = 'none';
     fallbackEl.style.display = 'block';
-    fallbackEl.innerHTML = weeks.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
+    fallbackEl.innerHTML = buckets.map(w=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${w.label}</span><strong style="color:var(--green)">+${money(w.income)}</strong><strong style="color:var(--coral)">-${money(w.expense)}</strong></div>`).join('');
   }
 }
 
-/* ---------- Insight: category breakdown pie (this month) ---------- */
+/* ---------- Insight: category breakdown pie ---------- */
 function renderInsightCategoryChart(){
-  const [mf] = periodRange('monthly');
-  const inRange = expenses.filter(e=>e.date>=mf && e.date<=todayStr() && (e.type||'expense')===insightCatType);
+  $('insightCatPeriodLabel').textContent = insightPeriodLabel(insightPeriod);
+  const [pf, pt] = periodRange(insightPeriod);
+  const inRange = expenses.filter(e=>e.date>=pf && e.date<=pt && (e.type||'expense')===insightCatType);
   const byCat = {};
   inRange.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
   const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
@@ -1254,7 +1516,7 @@ function renderInsightCategoryChart(){
       <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${Math.max(6,pct)}%;background:${color};"></div></div>
       <span class="amt">${money(amt)} <span style="color:var(--ink-soft);font-size:11px;">(${pct}%)</span></span>
     </div>`;
-  }).join('') : `<div class="empty-note">No ${insightCatType} logged this month.</div>`;
+  }).join('') : `<div class="empty-note">No ${insightCatType} logged for ${insightPeriodLabel(insightPeriod).toLowerCase()}.</div>`;
 
   const canvas = $('insightCatChart'); const emptyNote = $('insightCatEmpty');
   if(insightCatChartInstance){ try{ insightCatChartInstance.destroy(); }catch(e){} insightCatChartInstance = null; }
@@ -1263,7 +1525,7 @@ function renderInsightCategoryChart(){
     emptyNote.textContent = 'Chart unavailable right now — the breakdown above is still accurate.';
   } else if(catEntries.length===0){
     canvas.style.display='none'; emptyNote.style.display='block';
-    emptyNote.textContent = `No ${insightCatType} logged this month.`;
+    emptyNote.textContent = `No ${insightCatType} logged for ${insightPeriodLabel(insightPeriod).toLowerCase()}.`;
   } else {
     canvas.style.display='block'; emptyNote.style.display='none';
     try{
@@ -1271,7 +1533,7 @@ function renderInsightCategoryChart(){
         type:'pie',
         data:{
           labels: catEntries.map(c=>c[0]),
-          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], insightCatType)), borderColor:'#F8F9F5', borderWidth:2 }]
+          datasets:[{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map(c=>categoryColor(c[0], insightCatType)), borderColor:cssVar('--paper-card'), borderWidth:2 }]
         },
         options:{ plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.label}: ${money(ctx.parsed)}` } } } }
       });
@@ -1282,10 +1544,11 @@ function renderInsightCategoryChart(){
   }
 }
 
-/* ---------- Insight: spend/earn by payment method (this month) ---------- */
+/* ---------- Insight: spend/earn by payment method ---------- */
 function renderPaymentMethodChart(){
-  const [mf] = periodRange('monthly');
-  const inRange = expenses.filter(e=>e.date>=mf && e.date<=todayStr());
+  $('paymentMethodPeriodLabel').textContent = 'Which card, cash, or account moves the most — ' + insightPeriodLabel(insightPeriod).toLowerCase();
+  const [pf, pt] = periodRange(insightPeriod);
+  const inRange = expenses.filter(e=>e.date>=pf && e.date<=pt);
   const methods = [...new Set([...paymentMethods, ...inRange.map(e=>e.paymentMethod)])];
   const data = methods.map(m=>{
     const income = inRange.filter(e=>e.paymentMethod===m && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
@@ -1298,10 +1561,10 @@ function renderPaymentMethodChart(){
   if(paymentMethodChartInstance){ try{ paymentMethodChartInstance.destroy(); }catch(e){} paymentMethodChartInstance = null; }
   if(typeof Chart === 'undefined'){
     canvas.style.display='none'; emptyNote.style.display='block';
-    emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('') || 'No transactions logged this month.';
+    emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('') || 'No transactions logged for ' + insightPeriodLabel(insightPeriod).toLowerCase() + '.';
   } else if(data.length===0){
     canvas.style.display='none'; emptyNote.style.display='block';
-    emptyNote.textContent = 'No transactions logged this month.';
+    emptyNote.textContent = 'No transactions logged for ' + insightPeriodLabel(insightPeriod).toLowerCase() + '.';
   } else {
     canvas.style.display='block'; emptyNote.style.display='none';
     try{
@@ -1310,8 +1573,8 @@ function renderPaymentMethodChart(){
         data:{
           labels: data.map(d=>d.method),
           datasets:[
-            { label:'Income', data: data.map(d=>d.income), backgroundColor:'#2F6F4E', borderRadius:6, maxBarThickness:28 },
-            { label:'Expenses', data: data.map(d=>d.expense), backgroundColor:'#C4432B', borderRadius:6, maxBarThickness:28 },
+            { label:'Income', data: data.map(d=>d.income), backgroundColor:'#10B981', borderRadius:8, maxBarThickness:28 },
+            { label:'Expenses', data: data.map(d=>d.expense), backgroundColor:'#F43F5E', borderRadius:8, maxBarThickness:28 },
           ]
         },
         options:{
@@ -1337,30 +1600,49 @@ function renderAll(){
   populateCategoryFilter();
   renderTransactions();
   renderPaymentMethods();
+  renderAccounts();
   refreshDatalists();
 }
 
 /* ---------- Expense/Income modal logic ---------- */
+const TYPE_WORD = { expense:'Expense', income:'Income', transfer:'Transfer' };
+const TYPE_BTN_COLOR = { expense:'var(--btn-coral)', income:'var(--btn-green)', transfer:'var(--btn-blue)' };
+function fillToSelect(selected, avoid){
+  const sel = $('fToAccount');
+  sel.innerHTML = paymentMethods.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  const fallback = paymentMethods.find(p=>p!==avoid) || paymentMethods[0];
+  sel.value = (selected && paymentMethods.includes(selected)) ? selected : fallback;
+}
 function applyFormType(type, presetCategory){
   currentFormType = type;
   document.querySelectorAll('#formTypeTabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.type===type));
-  fillCategoryPicker($('fCategoryPicker'), presetCategory || null, type);
-  wireCategoryPicker($('fCategoryPicker'), $('fCategoryNew'), presetCategory || null);
-  $('saveExpenseBtn').textContent = type==='income' ? 'Save Income' : 'Save Expense';
-  $('saveExpenseBtn').style.background = type==='income' ? 'var(--green)' : 'var(--coral)';
+  const isT = type === 'transfer';
+  $('fItemWrap').style.display = isT ? 'none' : '';
+  $('fCategoryWrap').style.display = isT ? 'none' : '';
+  $('fToWrap').style.display = isT ? '' : 'none';
+  $('fPaymentLabel').textContent = isT ? 'From account' : 'Payment method';
+  if(isT){
+    fillToSelect(null, $('fPayment').value);
+  } else {
+    fillCategoryPicker($('fCategoryPicker'), presetCategory || null, type);
+    wireCategoryPicker($('fCategoryPicker'), $('fCategoryNew'), presetCategory || null);
+  }
+  $('saveExpenseBtn').textContent = 'Save ' + TYPE_WORD[type];
+  $('saveExpenseBtn').style.background = TYPE_BTN_COLOR[type];
   refreshDatalists();
 }
 
 function openAddModal(type){
   editingExpenseId = null;
   applyFormType(type, null);
-  $('expenseModalTitle').textContent = type==='income' ? 'Add Income' : 'Add Expense';
+  $('expenseModalTitle').textContent = 'Add ' + TYPE_WORD[type];
   currentItemTags = [];
   renderItemTags();
   $('fItemName').value=''; $('fAmount').value=''; $('fDate').value=todayStr();
   $('fPaymentNew').value = '';
   fillPaymentSelect($('fPayment'), 'Cash');
   wirePaymentToggle($('fPayment'), $('fPaymentNew'));
+  if(type==='transfer') fillToSelect(null, $('fPayment').value);
   $('expenseOverlay').classList.add('open');
   setTimeout(()=>$('fItemName').focus(),50);
 }
@@ -1369,13 +1651,14 @@ window.openEditExpense = function(id){
   editingExpenseId = id;
   const type = e.type || 'expense';
   applyFormType(type, e.category);
-  $('expenseModalTitle').textContent = type==='income' ? 'Edit Income' : 'Edit Expense';
-  currentItemTags = String(e.itemName||'').split(',').map(s=>s.trim()).filter(Boolean);
+  $('expenseModalTitle').textContent = 'Edit ' + TYPE_WORD[type];
+  currentItemTags = type==='transfer' ? [] : String(e.itemName||'').split(',').map(s=>s.trim()).filter(Boolean);
   $('fItemName').value=''; $('fAmount').value=e.amount; $('fDate').value=e.date;
   renderItemTags();
   $('fPaymentNew').value = '';
   fillPaymentSelect($('fPayment'), e.paymentMethod);
   wirePaymentToggle($('fPayment'), $('fPaymentNew'));
+  if(type==='transfer') fillToSelect(e.toMethod, e.paymentMethod);
   $('expenseOverlay').classList.add('open');
 }
 function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
@@ -1383,7 +1666,7 @@ function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
 $('formTypeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
   applyFormType(btn.dataset.type, null);
-  $('expenseModalTitle').textContent = (editingExpenseId ? 'Edit ' : 'Add ') + (btn.dataset.type==='income' ? 'Income' : 'Expense');
+  $('expenseModalTitle').textContent = (editingExpenseId ? 'Edit ' : 'Add ') + TYPE_WORD[btn.dataset.type];
 });
 
 // Event delegation on the container itself — survives the innerHTML rebuilds
@@ -1411,6 +1694,28 @@ $('fCategoryPicker').addEventListener('click', (ev)=>{
 });
 
 $('saveExpenseBtn').addEventListener('click', async ()=>{
+  if(currentFormType === 'transfer'){
+    const from = readPaymentValue($('fPayment'), $('fPaymentNew'));
+    const to = $('fToAccount').value;
+    const tAmount = parseFloat($('fAmount').value);
+    const tDate = $('fDate').value || todayStr();
+    if(!from || !to){ showToast('Pick both accounts'); return; }
+    if(from.toLowerCase() === to.toLowerCase()){ showToast('Pick two different accounts'); return; }
+    if(!tAmount || tAmount<=0){ showToast('Enter a valid amount'); return; }
+    if(!paymentMethods.some(p=>p.toLowerCase()===from.toLowerCase())) paymentMethods.push(from);
+    const rec = { itemName: `${from} → ${to}`, amount: tAmount, date: tDate, category: 'Transfer', paymentMethod: from, toMethod: to, type: 'transfer' };
+    if(editingExpenseId){
+      Object.assign(expenses.find(x=>x.id===editingExpenseId), rec);
+      showToast('Transfer updated');
+    } else {
+      expenses.push({ id: uid(), ...rec, createdAt: Date.now() });
+      showToast('Transfer added');
+    }
+    await saveData();
+    closeExpenseModal();
+    renderAll();
+    return;
+  }
   if($('fItemName').value.trim()) addItemTag($('fItemName').value); // catch a typed-but-not-tagged item
   const itemName = currentItemTags.join(', ');
   const amount = parseFloat($('fAmount').value);
@@ -1443,6 +1748,7 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
   if(editingExpenseId){
     const e = expenses.find(x=>x.id===editingExpenseId);
     Object.assign(e, { itemName, amount, date, category, paymentMethod, type });
+    delete e.toMethod;
     showToast(type==='income' ? 'Income updated' : 'Expense updated');
   } else {
     expenses.push({ id: uid(), itemName, amount, date, category, paymentMethod, type, createdAt: Date.now() });
@@ -1483,6 +1789,16 @@ $('overviewTypeTabs').addEventListener('click', (ev)=>{
   $('overviewCategory').value = '';
   populateCategoryFilter();
   renderOverview();
+});
+
+$('insightPeriodTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('#insightPeriodTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  insightPeriod = btn.dataset.period;
+  renderWeeklyTrend();
+  renderInsightCategoryChart();
+  renderPaymentMethodChart();
 });
 
 $('insightCatTypeTabs').addEventListener('click', (ev)=>{
@@ -1534,12 +1850,18 @@ function showPage(page){
   document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
   // Chart.js sizes canvases from their visible container, so a chart drawn
   // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
-  if(page === 'home') renderOverview();
+  if(page === 'home'){ renderAccounts(); renderOverview(); }
   if(page === 'insight'){ renderWeeklyTrend(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
   if(page === 'transactions') renderTransactions();
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+$('themeTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  try{ localStorage.setItem('ledger-theme', btn.dataset.theme); }catch(e){}
+  applyTheme(btn.dataset.theme);
+  renderAll(); // charts read their colours when drawn
+});
 document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
   btn.addEventListener('click', ()=>showPage(btn.dataset.page));
 });
@@ -1555,6 +1877,7 @@ if('serviceWorker' in navigator){
 }
 
 (async function init(){
+  applyTheme(currentTheme());
   initFirebase();
   await loadData();
   renderAll();
