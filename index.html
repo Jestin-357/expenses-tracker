@@ -299,6 +299,9 @@ body{padding-bottom:78px;}
 .pay-open-label{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
 .pay-opening{width:130px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--paper-card);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 
+.pay-fund-row{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
+.pay-add-btn{border:1px solid var(--green);background:transparent;color:var(--green);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.pay-add-btn:hover{background:var(--green);color:#fff;}
 /* ---------- Night mode ---------- */
 :root{--btn-green:#2F6F4E;--btn-coral:#C4432B;--btn-blue:#3457D5;}
 :root[data-theme="dark"]{
@@ -350,7 +353,7 @@ body{padding-bottom:78px;}
     </div>
     <div class="section-body">
       <div class="acct-scroll" id="acctCards"></div>
-      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances in Settings.</div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances and add funds to a card in Settings.</div>
     </div>
   </div>
 
@@ -463,6 +466,7 @@ body{padding-bottom:78px;}
           <option value="expense">Expenses</option>
           <option value="income">Income</option>
           <option value="transfer">Transfers</option>
+          <option value="topup">Added funds</option>
         </select>
         <select id="filterCategory"><option value="">All categories</option></select>
         <input type="date" id="filterFrom" title="From date"/>
@@ -494,7 +498,7 @@ body{padding-bottom:78px;}
   <div class="section">
     <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate.</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate. Use <strong>＋ Add funds</strong> on any row to top it up later.</div>
       <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
       <div class="filters" style="margin-bottom:0;">
         <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
@@ -584,6 +588,36 @@ body{padding-bottom:78px;}
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelExpenseBtn">Cancel</button>
       <button class="btn-primary" id="saveExpenseBtn">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Funds Modal -->
+<div class="overlay" id="fundsOverlay">
+  <div class="modal">
+    <h3 id="fundsTitle">Add funds</h3>
+    <div style="font-size:13px;color:var(--ink-soft);margin-top:-8px;margin-bottom:14px;">Top up a card or account. This raises its balance but is not counted as income.</div>
+    <div class="field">
+      <label>Card / account</label>
+      <select id="fFundAcct"></select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Amount to add</label>
+        <input type="number" id="fFundAmount" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="fFundDate"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <input type="text" id="fFundNote" placeholder="e.g. Salary top-up, cash deposit"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelFundsBtn">Cancel</button>
+      <button class="btn-primary" id="saveFundsBtn">Add funds</button>
     </div>
   </div>
 </div>
@@ -954,6 +988,7 @@ function renderPaymentMethods(){
       <label class="pay-open-label">Opening balance
         <input type="number" step="0.01" class="pay-opening" placeholder="0.00" value="${openingBalances[p] ? openingBalances[p] : ''}" />
       </label>
+      <div class="pay-fund-row"><span>Add more money to this card</span><button class="pay-add-btn" type="button">＋ Add funds</button></div>
     </div>`).join('');
 }
 $('paymentMethodList').addEventListener('change', async (ev)=>{
@@ -966,6 +1001,8 @@ $('paymentMethodList').addEventListener('change', async (ev)=>{
   showToast('Opening balance saved');
 });
 $('paymentMethodList').addEventListener('click', async (ev)=>{
+  const addBtn = ev.target.closest('.pay-add-btn');
+  if(addBtn){ openAddFunds(addBtn.closest('.pay-method-row').dataset.pay); return; }
   const btn = ev.target.closest('.pay-remove-btn'); if(!btn) return;
   const row = btn.closest('.pay-method-row');
   const p = row.dataset.pay;
@@ -1010,6 +1047,7 @@ function accountBalances(){
     const t = e.type || 'expense', a = Number(e.amount) || 0;
     if(t === 'income') add(e.paymentMethod, a);
     else if(t === 'expense') add(e.paymentMethod, -a);
+    else if(t === 'topup') add(e.paymentMethod, a);
     else if(t === 'transfer'){ add(e.paymentMethod, -a); add(e.toMethod, a); }
   });
   return bal;
@@ -1143,6 +1181,25 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;
 
 function txRowHtml(e){
   const type = e.type || 'expense';
+  if(type === 'topup'){
+    return `
+    <div class="tx-row">
+      <div class="tx-main" style="display:flex;align-items:center;gap:10px;">
+        <span class="cat-icon-circle" style="background:#10B98126;">💰</span>
+        <div>
+          <div class="tx-item">${escapeHtml(e.itemName || 'Funds added')}</div>
+          <div class="tx-meta">${e.date}</div>
+        </div>
+      </div>
+      <div class="tx-tag" style="background:#10B98122;color:#059669">Added funds</div>
+      <div class="tx-pay">${escapeHtml(e.paymentMethod)}</div>
+      <div class="tx-amt" style="color:var(--green)">+${money(e.amount)}</div>
+      <div class="tx-actions">
+        <button class="icon-btn" onclick="openEditExpense('${e.id}')" title="Edit">✎</button>
+        <button class="icon-btn danger" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }
   if(type === 'transfer'){
     return `
     <div class="tx-row">
@@ -1648,6 +1705,7 @@ function openAddModal(type){
 }
 window.openEditExpense = function(id){
   const e = expenses.find(x=>x.id===id); if(!e) return;
+  if((e.type||'expense') === 'topup'){ openAddFunds(e.paymentMethod, id); return; }
   editingExpenseId = id;
   const type = e.type || 'expense';
   applyFormType(type, e.category);
@@ -1662,6 +1720,43 @@ window.openEditExpense = function(id){
   $('expenseOverlay').classList.add('open');
 }
 function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
+
+/* ---------- Add funds to a card / account ---------- */
+let editingFundsId = null;
+window.openAddFunds = function(acct, id){
+  editingFundsId = id || null;
+  const e = id ? expenses.find(x=>x.id===id) : null;
+  $('fundsTitle').textContent = e ? 'Edit added funds' : 'Add funds';
+  $('saveFundsBtn').textContent = e ? 'Save changes' : 'Add funds';
+  const sel = $('fFundAcct');
+  sel.innerHTML = paymentMethods.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  sel.value = (acct && paymentMethods.includes(acct)) ? acct : paymentMethods[0];
+  $('fFundAmount').value = e ? e.amount : '';
+  $('fFundDate').value = e ? e.date : todayStr();
+  $('fFundNote').value = e && e.itemName !== 'Funds added' ? e.itemName : '';
+  $('fundsOverlay').classList.add('open');
+  setTimeout(()=>$('fFundAmount').focus(), 50);
+};
+function closeFundsModal(){ $('fundsOverlay').classList.remove('open'); }
+$('cancelFundsBtn').addEventListener('click', closeFundsModal);
+$('saveFundsBtn').addEventListener('click', async ()=>{
+  const acct = $('fFundAcct').value;
+  const amount = parseFloat($('fFundAmount').value);
+  if(!acct){ showToast('Pick a card or account'); return; }
+  if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
+  const rec = { itemName: $('fFundNote').value.trim() || 'Funds added', amount, date: $('fFundDate').value || todayStr(), category: 'Top-up', paymentMethod: acct, type: 'topup' };
+  if(editingFundsId){
+    const ex = expenses.find(x=>x.id===editingFundsId);
+    if(ex) Object.assign(ex, rec);
+    showToast('Funds entry updated');
+  } else {
+    expenses.push({ id: uid(), ...rec, createdAt: Date.now() });
+    showToast(money(amount) + ' added to ' + acct);
+  }
+  await saveData();
+  closeFundsModal();
+  renderAll();
+});
 
 $('formTypeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
@@ -1761,7 +1856,8 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
 });
 
 window.deleteExpense = async function(id){
-  if(!confirm('Delete this expense?')) return;
+  const _d = expenses.find(e=>e.id===id);
+  if(!confirm(_d && _d.type==='topup' ? 'Delete this added-funds entry? The card balance will go down by this amount.' : 'Delete this expense?')) return;
   expenses = expenses.filter(e=>e.id!==id);
   await saveData();
   renderAll();
