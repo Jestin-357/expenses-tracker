@@ -299,9 +299,11 @@ body{padding-bottom:78px;}
 .pay-open-label{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
 .pay-opening{width:130px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--paper-card);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 
-.pay-fund-row{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
-.pay-add-btn{border:1px solid var(--green);background:transparent;color:var(--green);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;}
-.pay-add-btn:hover{background:var(--green);color:#fff;}
+.acct-edit-btn{background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.acct-x{position:absolute;top:8px;right:8px;z-index:2;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,0.35);color:#fff;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.acct-x:hover{background:rgba(0,0,0,0.55);}
+.cur-select{width:100%;max-width:340px;padding:10px 11px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-size:14px;font-family:'IBM Plex Sans',sans-serif;}
+
 /* ---------- Night mode ---------- */
 :root{--btn-green:#2F6F4E;--btn-coral:#C4432B;--btn-blue:#3457D5;}
 :root[data-theme="dark"]{
@@ -323,6 +325,16 @@ body{padding-bottom:78px;}
 :root[data-theme="dark"] #page-insight .tabs:not(#insightPeriodTabs) .tab.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;}
 :root[data-theme="dark"] .item-suggest{box-shadow:0 10px 24px rgba(0,0,0,0.5);}
 :root[data-theme="dark"] .acct-card{box-shadow:0 8px 18px rgba(0,0,0,0.4);}
+
+/* ---------- Day / Night picker ---------- */
+#themeTabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px;}
+#themeTabs .tab{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 10px;border-radius:14px;font-size:15px;font-weight:700;text-align:center;border:2px solid transparent;}
+#themeTabs .tab[data-theme="light"]{background:linear-gradient(135deg,#FFF3CC,#FFE0A3);color:#9A5B00;}
+#themeTabs .tab[data-theme="dark"]{background:linear-gradient(135deg,#E4E6FF,#D3CCF7);color:#3F3F86;}
+#themeTabs .tab.active[data-theme="light"]{background:linear-gradient(135deg,#FBBF24,#F97316) !important;color:#fff !important;box-shadow:0 8px 18px rgba(249,115,22,0.38);border-color:rgba(255,255,255,0.5);}
+#themeTabs .tab.active[data-theme="dark"]{background:linear-gradient(135deg,#312E81,#7C3AED) !important;color:#fff !important;box-shadow:0 8px 18px rgba(99,102,241,0.42);border-color:rgba(255,255,255,0.35);}
+:root[data-theme="dark"] #themeTabs .tab[data-theme="light"]:not(.active){background:linear-gradient(135deg,#3A2F14,#4A3512);color:#FBBF24;}
+:root[data-theme="dark"] #themeTabs .tab[data-theme="dark"]:not(.active){background:linear-gradient(135deg,#1F2350,#2B2263);color:#B7B4F5;}
 </style>
 </head>
 <body>
@@ -337,23 +349,25 @@ body{padding-bottom:78px;}
 
   <div id="page-home" class="page active">
   <div class="hero-card">
-    <div class="hero-label">Balance this month</div>
-    <div class="hero-amount" id="statBalanceMonth">—</div>
-    <div class="hero-subrow">
-      <div class="hero-pill"><span class="hero-pill-label">💰 Income</span><span class="hero-pill-value" id="statIncome">—</span></div>
-      <div class="hero-pill"><span class="hero-pill-label">💸 Expenses</span><span class="hero-pill-value" id="statExpense">—</span></div>
-      <div class="hero-pill"><span class="hero-pill-label">🏦 Total balance</span><span class="hero-pill-value" id="statBalanceAll">—</span></div>
+    <div class="hero-label">Total Balance</div>
+    <div class="hero-amount" id="statTotalBalance">—</div>
+    <div class="hero-subrow" style="grid-template-columns:repeat(2,1fr);">
+      <div class="hero-pill"><span class="hero-pill-label">💰 Income · This month</span><span class="hero-pill-value" id="statIncome">—</span></div>
+      <div class="hero-pill"><span class="hero-pill-label">💸 Expenses · This month</span><span class="hero-pill-value" id="statExpense">—</span></div>
     </div>
   </div>
 
   <div class="section">
     <div class="section-head">
       <h2 class="section-title">🏦 Cards &amp; Accounts</h2>
-      <span class="acct-total" id="acctTotal"></span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="acct-total" id="acctTotal"></span>
+        <button class="acct-edit-btn" id="acctEditBtn" type="button">Edit</button>
+      </div>
     </div>
     <div class="section-body">
       <div class="acct-scroll" id="acctCards"></div>
-      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances and add funds to a card in Settings.</div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances in Settings.</div>
     </div>
   </div>
 
@@ -466,7 +480,6 @@ body{padding-bottom:78px;}
           <option value="expense">Expenses</option>
           <option value="income">Income</option>
           <option value="transfer">Transfers</option>
-          <option value="topup">Added funds</option>
         </select>
         <select id="filterCategory"><option value="">All categories</option></select>
         <input type="date" id="filterFrom" title="From date"/>
@@ -496,9 +509,17 @@ body{padding-bottom:78px;}
   </div>
 
   <div class="section">
+    <div class="section-head"><h2 class="section-title">💱 Currency</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Pick the currency shown across the app. This changes the symbol only — existing amounts are not converted.</div>
+      <select id="currencySelect" class="cur-select"></select>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate. Use <strong>＋ Add funds</strong> on any row to top it up later.</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate.</div>
       <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
       <div class="filters" style="margin-bottom:0;">
         <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
@@ -560,7 +581,7 @@ body{padding-bottom:78px;}
     </div>
     <div class="field-row">
       <div class="field">
-        <label>Amount</label>
+        <label id="fAmountLabel">Amount</label>
         <input type="number" id="fAmount" placeholder="0.00" min="0" step="0.01"/>
       </div>
       <div class="field">
@@ -588,36 +609,6 @@ body{padding-bottom:78px;}
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelExpenseBtn">Cancel</button>
       <button class="btn-primary" id="saveExpenseBtn">Save Expense</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Funds Modal -->
-<div class="overlay" id="fundsOverlay">
-  <div class="modal">
-    <h3 id="fundsTitle">Add funds</h3>
-    <div style="font-size:13px;color:var(--ink-soft);margin-top:-8px;margin-bottom:14px;">Top up a card or account. This raises its balance but is not counted as income.</div>
-    <div class="field">
-      <label>Card / account</label>
-      <select id="fFundAcct"></select>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Amount to add</label>
-        <input type="number" id="fFundAmount" placeholder="0.00" min="0" step="0.01"/>
-      </div>
-      <div class="field">
-        <label>Date</label>
-        <input type="date" id="fFundDate"/>
-      </div>
-    </div>
-    <div class="field">
-      <label>Note (optional)</label>
-      <input type="text" id="fFundNote" placeholder="e.g. Salary top-up, cash deposit"/>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" id="cancelFundsBtn">Cancel</button>
-      <button class="btn-primary" id="saveFundsBtn">Add funds</button>
     </div>
   </div>
 </div>
@@ -665,6 +656,8 @@ let items = [];
 let expenses = [];
 let paymentMethods = [...DEFAULT_PAYMENT_METHODS];
 let openingBalances = {};
+let acctEditMode = false;
+let currency = 'INR';
 let period = 'daily';
 let overviewType = 'expense';
 let currentFormType = 'expense';
@@ -693,10 +686,35 @@ function applyTheme(mode){
 }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function todayStr(){ return toStr(new Date()); }
-function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+const CURRENCIES = [
+  { code:'INR', symbol:'₹',   name:'Indian Rupee',       locale:'en-IN', digits:2 },
+  { code:'JPY', symbol:'¥',   name:'Japanese Yen',       locale:'en-US', digits:0 },
+  { code:'USD', symbol:'$',   name:'US Dollar',          locale:'en-US', digits:2 },
+  { code:'EUR', symbol:'€',   name:'Euro',               locale:'en-US', digits:2 },
+  { code:'GBP', symbol:'£',   name:'British Pound',      locale:'en-US', digits:2 },
+  { code:'AUD', symbol:'A$',  name:'Australian Dollar',  locale:'en-US', digits:2 },
+  { code:'CAD', symbol:'C$',  name:'Canadian Dollar',    locale:'en-US', digits:2 },
+  { code:'SGD', symbol:'S$',  name:'Singapore Dollar',   locale:'en-US', digits:2 },
+  { code:'CNY', symbol:'CN¥', name:'Chinese Yuan',       locale:'en-US', digits:2 },
+  { code:'KRW', symbol:'₩',   name:'South Korean Won',   locale:'en-US', digits:0 },
+  { code:'AED', symbol:'AED ',name:'UAE Dirham',         locale:'en-US', digits:2 },
+  { code:'CHF', symbol:'CHF ',name:'Swiss Franc',        locale:'en-US', digits:2 },
+];
+function curInfo(){ return CURRENCIES.find(c=>c.code===currency) || CURRENCIES[0]; }
+function curSymbol(){ return curInfo().symbol; }
+function money(n){
+  const c = curInfo();
+  return c.symbol + Number(n||0).toLocaleString(c.locale,{minimumFractionDigits:c.digits,maximumFractionDigits:c.digits});
+}
+function applyCurrency(){
+  const c = curInfo();
+  document.querySelectorAll('.brand .mark').forEach(m=>{ m.textContent = c.symbol.trim(); m.style.fontSize = c.symbol.trim().length > 2 ? '10px' : ''; });
+  const lbl = $('fAmountLabel'); if(lbl) lbl.textContent = 'Amount (' + c.symbol.trim() + ')';
+  const sel = $('currencySelect'); if(sel) sel.value = c.code;
+}
 function showToast(msg){
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 1800);
+  clearTimeout(showToast._t); showToast._t = setTimeout(()=>t.classList.remove('show'), Math.max(1800, msg.length * 55));
 }
 
 /* ---------- Firebase sync ---------- */
@@ -746,12 +764,13 @@ function connectSync(code){
       expenses = withDefaultType(data.expenses);
       paymentMethods = resolvePaymentMethods(data.paymentMethods, expenses);
       openingBalances = data.openingBalances || {};
-      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances }));
+      currency = data.currency || 'INR'; applyCurrency();
+      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }));
       renderAll();
       applyingRemote = false;
     } else {
       // first time this code is used — seed it with whatever's local
-      ref.set({ items, expenses, paymentMethods, openingBalances });
+      ref.set({ items, expenses, paymentMethods, openingBalances, currency });
     }
   }, (err)=>{
     showToast("Sync error — check your connection.");
@@ -803,6 +822,7 @@ async function loadData(){
     expenses = withDefaultType(parsed.expenses);
     paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
     openingBalances = parsed.openingBalances || {};
+    currency = parsed.currency || 'INR';
     // Brand-new install (nothing saved, nothing synced down yet) — seed some
     // common item names so autocomplete has something to suggest immediately,
     // instead of staying empty until the person has typed each item once.
@@ -814,19 +834,19 @@ async function loadData(){
       items = seedItemLibrary();
     }
   }catch(e){
-    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS]; openingBalances = {};
+    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS]; openingBalances = {}; currency = 'INR';
   }
 }
 
 async function saveData(){
   try{
-    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances }));
+    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }));
   }catch(e){
     showToast("Couldn't save locally — your browser storage may be full.");
   }
   if(db && syncCode && !applyingRemote){
     try{
-      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods, openingBalances });
+      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods, openingBalances, currency });
     }catch(e){
       showToast("Saved locally — cloud sync failed.");
     }
@@ -834,7 +854,7 @@ async function saveData(){
 }
 
 function exportBackup(){
-  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods, openingBalances }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `ledger-backup-${todayStr()}.json`;
@@ -853,6 +873,7 @@ function importBackup(file){
       items = withDefaultType(parsed.items); expenses = withDefaultType(parsed.expenses);
       paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
       openingBalances = parsed.openingBalances || {};
+      currency = parsed.currency || currency; applyCurrency();
       await saveData();
       renderAll();
       showToast('Backup restored');
@@ -984,11 +1005,10 @@ function renderPaymentMethods(){
       <span class="pay-name">${acctIcon(p)} ${escapeHtml(p)}</span>
       <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
       <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:${(bal[p]||0)<0?'var(--coral)':'var(--green)'};">${moneySigned(bal[p]||0)}</span>
-      <button class="icon-btn danger pay-remove-btn" title="Remove">✕</button>
+      <button class="icon-btn danger pay-remove-btn" title="${usageCount(p) ? 'In use — can\'t delete' : 'Delete'}" style="${usageCount(p) ? 'opacity:.35;' : ''}">✕</button>
       <label class="pay-open-label">Opening balance
         <input type="number" step="0.01" class="pay-opening" placeholder="0.00" value="${openingBalances[p] ? openingBalances[p] : ''}" />
       </label>
-      <div class="pay-fund-row"><span>Add more money to this card</span><button class="pay-add-btn" type="button">＋ Add funds</button></div>
     </div>`).join('');
 }
 $('paymentMethodList').addEventListener('change', async (ev)=>{
@@ -1000,19 +1020,25 @@ $('paymentMethodList').addEventListener('change', async (ev)=>{
   renderAll();
   showToast('Opening balance saved');
 });
-$('paymentMethodList').addEventListener('click', async (ev)=>{
-  const addBtn = ev.target.closest('.pay-add-btn');
-  if(addBtn){ openAddFunds(addBtn.closest('.pay-method-row').dataset.pay); return; }
-  const btn = ev.target.closest('.pay-remove-btn'); if(!btn) return;
-  const row = btn.closest('.pay-method-row');
-  const p = row.dataset.pay;
-  if(paymentMethods.length <= 1){ showToast('Keep at least one payment method'); return; }
-  if(!confirm(`Remove "${p}"? Past transactions keep this label, but you won't be able to pick it for new ones.`)) return;
+async function removeAccount(p){
+  if(paymentMethods.length <= 1){ showToast('Keep at least one account'); return; }
+  const used = expenses.filter(e=>e.paymentMethod===p || e.toMethod===p).length;
+  if(used){
+    showToast(`"${p}" is used by ${used} transaction${used>1?'s':''} — edit or delete those first`);
+    return;
+  }
+  const opening = Number(openingBalances[p]) || 0;
+  const extra = opening ? ` Its opening balance (${money(opening)}) will no longer count toward your total.` : '';
+  if(!confirm(`Delete "${p}"?${extra}`)) return;
   paymentMethods = paymentMethods.filter(x=>x!==p);
   delete openingBalances[p];
   await saveData();
-  renderPaymentMethods();
-  showToast('Payment method removed');
+  renderAll();
+  showToast('Deleted "' + p + '"');
+}
+$('paymentMethodList').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.pay-remove-btn'); if(!btn) return;
+  removeAccount(btn.closest('.pay-method-row').dataset.pay);
 });
 $('addPaymentBtn').addEventListener('click', async ()=>{
   const val = $('newPaymentInput').value.trim();
@@ -1047,7 +1073,6 @@ function accountBalances(){
     const t = e.type || 'expense', a = Number(e.amount) || 0;
     if(t === 'income') add(e.paymentMethod, a);
     else if(t === 'expense') add(e.paymentMethod, -a);
-    else if(t === 'topup') add(e.paymentMethod, a);
     else if(t === 'transfer'){ add(e.paymentMethod, -a); add(e.toMethod, a); }
   });
   return bal;
@@ -1066,12 +1091,14 @@ function acctIcon(name){
 }
 function renderAccounts(){
   const el = $('acctCards'); if(!el) return;
+  $('acctEditBtn').textContent = acctEditMode ? 'Done' : 'Edit';
   const bal = accountBalances();
   const names = Object.keys(bal);
   const total = names.reduce((s,n)=>s+bal[n], 0);
   $('acctTotal').textContent = 'Total ' + moneySigned(total);
   el.innerHTML = names.map((n,i)=>`
-    <div class="acct-card" style="background:${ACCT_GRADIENTS[i % ACCT_GRADIENTS.length]}">
+    <div class="acct-card" data-name="${escapeHtml(n)}" style="background:${ACCT_GRADIENTS[i % ACCT_GRADIENTS.length]}">
+      ${acctEditMode ? '<button class="acct-x" type="button" title="Delete">✕</button>' : ''}
       <div class="acct-ico">${acctIcon(n)}</div>
       <div class="acct-name">${escapeHtml(n)}</div>
       <div class="acct-bal">${moneySigned(bal[n])}</div>
@@ -1082,16 +1109,15 @@ function renderStats(){
   const [mf] = periodRange('monthly');
   const incomeMonth = sumByType(mf, todayStr(), 'income');
   const expenseMonth = sumByType(mf, todayStr(), 'expense');
-  const balMonth = incomeMonth - expenseMonth;
   $('statIncome').textContent = money(incomeMonth);
   $('statExpense').textContent = money(expenseMonth);
-  $('statBalanceMonth').textContent = moneySigned(balMonth);
-  $('statBalanceMonth').style.color = balMonth < 0 ? '#FFD9D2' : '#FFFFFF';
 
+  // headline number = net worth across every account (opening balances +
+  // all income/expenses/transfers), not tied to any single month
   const balances = accountBalances();
   const balAll = Object.keys(balances).reduce((s,n)=>s+balances[n], 0);
-  $('statBalanceAll').textContent = moneySigned(balAll);
-  $('statBalanceAll').style.color = balAll < 0 ? '#FFD9D2' : '#FFFFFF';
+  $('statTotalBalance').textContent = moneySigned(balAll);
+  $('statTotalBalance').style.color = balAll < 0 ? '#FFD9D2' : '#FFFFFF';
 }
 
 /* ---------- Overview (period tabs + chart) ---------- */
@@ -1181,25 +1207,6 @@ function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;
 
 function txRowHtml(e){
   const type = e.type || 'expense';
-  if(type === 'topup'){
-    return `
-    <div class="tx-row">
-      <div class="tx-main" style="display:flex;align-items:center;gap:10px;">
-        <span class="cat-icon-circle" style="background:#10B98126;">💰</span>
-        <div>
-          <div class="tx-item">${escapeHtml(e.itemName || 'Funds added')}</div>
-          <div class="tx-meta">${e.date}</div>
-        </div>
-      </div>
-      <div class="tx-tag" style="background:#10B98122;color:#059669">Added funds</div>
-      <div class="tx-pay">${escapeHtml(e.paymentMethod)}</div>
-      <div class="tx-amt" style="color:var(--green)">+${money(e.amount)}</div>
-      <div class="tx-actions">
-        <button class="icon-btn" onclick="openEditExpense('${e.id}')" title="Edit">✎</button>
-        <button class="icon-btn danger" onclick="deleteExpense('${e.id}')" title="Delete">✕</button>
-      </div>
-    </div>`;
-  }
   if(type === 'transfer'){
     return `
     <div class="tx-row">
@@ -1541,7 +1548,7 @@ function renderWeeklyTrend(){
           tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.y)}`, title: (items)=> buckets[items[0].dataIndex].range } },
         },
         scales: {
-          y: { beginAtZero:true, ticks: { callback:(v)=> '₹'+v } },
+          y: { beginAtZero:true, ticks: { callback:(v)=> curSymbol()+v } },
         },
       },
     });
@@ -1637,7 +1644,7 @@ function renderPaymentMethodChart(){
         options:{
           indexAxis:'y',
           plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.x)}` } } },
-          scales:{ x:{ beginAtZero:true, ticks:{ callback:(v)=>'₹'+v } } },
+          scales:{ x:{ beginAtZero:true, ticks:{ callback:(v)=>curSymbol()+v } } },
         }
       });
     }catch(e){
@@ -1705,7 +1712,6 @@ function openAddModal(type){
 }
 window.openEditExpense = function(id){
   const e = expenses.find(x=>x.id===id); if(!e) return;
-  if((e.type||'expense') === 'topup'){ openAddFunds(e.paymentMethod, id); return; }
   editingExpenseId = id;
   const type = e.type || 'expense';
   applyFormType(type, e.category);
@@ -1720,43 +1726,6 @@ window.openEditExpense = function(id){
   $('expenseOverlay').classList.add('open');
 }
 function closeExpenseModal(){ $('expenseOverlay').classList.remove('open'); }
-
-/* ---------- Add funds to a card / account ---------- */
-let editingFundsId = null;
-window.openAddFunds = function(acct, id){
-  editingFundsId = id || null;
-  const e = id ? expenses.find(x=>x.id===id) : null;
-  $('fundsTitle').textContent = e ? 'Edit added funds' : 'Add funds';
-  $('saveFundsBtn').textContent = e ? 'Save changes' : 'Add funds';
-  const sel = $('fFundAcct');
-  sel.innerHTML = paymentMethods.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
-  sel.value = (acct && paymentMethods.includes(acct)) ? acct : paymentMethods[0];
-  $('fFundAmount').value = e ? e.amount : '';
-  $('fFundDate').value = e ? e.date : todayStr();
-  $('fFundNote').value = e && e.itemName !== 'Funds added' ? e.itemName : '';
-  $('fundsOverlay').classList.add('open');
-  setTimeout(()=>$('fFundAmount').focus(), 50);
-};
-function closeFundsModal(){ $('fundsOverlay').classList.remove('open'); }
-$('cancelFundsBtn').addEventListener('click', closeFundsModal);
-$('saveFundsBtn').addEventListener('click', async ()=>{
-  const acct = $('fFundAcct').value;
-  const amount = parseFloat($('fFundAmount').value);
-  if(!acct){ showToast('Pick a card or account'); return; }
-  if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
-  const rec = { itemName: $('fFundNote').value.trim() || 'Funds added', amount, date: $('fFundDate').value || todayStr(), category: 'Top-up', paymentMethod: acct, type: 'topup' };
-  if(editingFundsId){
-    const ex = expenses.find(x=>x.id===editingFundsId);
-    if(ex) Object.assign(ex, rec);
-    showToast('Funds entry updated');
-  } else {
-    expenses.push({ id: uid(), ...rec, createdAt: Date.now() });
-    showToast(money(amount) + ' added to ' + acct);
-  }
-  await saveData();
-  closeFundsModal();
-  renderAll();
-});
 
 $('formTypeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
@@ -1856,8 +1825,7 @@ $('saveExpenseBtn').addEventListener('click', async ()=>{
 });
 
 window.deleteExpense = async function(id){
-  const _d = expenses.find(e=>e.id===id);
-  if(!confirm(_d && _d.type==='topup' ? 'Delete this added-funds entry? The card balance will go down by this amount.' : 'Delete this expense?')) return;
+  if(!confirm('Delete this expense?')) return;
   expenses = expenses.filter(e=>e.id!==id);
   await saveData();
   renderAll();
@@ -1952,6 +1920,19 @@ function showPage(page){
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+$('currencySelect').innerHTML = CURRENCIES.map(c=>`<option value="${c.code}">${c.symbol.trim()}  ${c.code} — ${c.name}</option>`).join('');
+$('currencySelect').addEventListener('change', async ()=>{
+  currency = $('currencySelect').value;
+  applyCurrency();
+  await saveData();
+  renderAll();
+  showToast('Currency set to ' + currency);
+});
+$('acctEditBtn').addEventListener('click', ()=>{ acctEditMode = !acctEditMode; renderAccounts(); });
+$('acctCards').addEventListener('click', (ev)=>{
+  const x = ev.target.closest('.acct-x'); if(!x) return;
+  removeAccount(x.closest('.acct-card').dataset.name);
+});
 $('themeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
   try{ localStorage.setItem('ledger-theme', btn.dataset.theme); }catch(e){}
@@ -1976,6 +1957,7 @@ if('serviceWorker' in navigator){
   applyTheme(currentTheme());
   initFirebase();
   await loadData();
+  applyCurrency();
   renderAll();
   updateSyncLabel();
   if(syncCode) connectSync(syncCode);
