@@ -268,6 +268,15 @@ body{padding-bottom:78px;}
 #insightPeriodTabs .tab{flex:1;text-align:center;border-radius:999px;padding:9px 6px;color:#5B5F8A;}
 #insightPeriodTabs .tab.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;box-shadow:0 6px 14px rgba(124,58,237,0.35);}
 .ins-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+.ins-summary.no-net{grid-template-columns:repeat(2,1fr);}
+.ins-summary.no-net .ins-card.net{display:none;}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.switch-row .sw-text{font-size:13px;color:var(--ink-soft);}
+.switch-row .sw-text b{display:block;font-size:14px;color:var(--ink);margin-bottom:2px;}
+.switch{position:relative;flex:0 0 auto;width:48px;height:28px;border-radius:999px;border:none;background:var(--line);cursor:pointer;transition:background .2s;}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.switch.on{background:linear-gradient(135deg,#4F46E5,#9333EA);}
+.switch.on::after{transform:translateX(20px);}
 .ins-card{border-radius:16px;padding:14px 14px 13px;color:#fff;position:relative;overflow:hidden;}
 .ins-card::after{content:"";position:absolute;right:-18px;top:-18px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.16);}
 .ins-card.inc{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 8px 18px rgba(16,185,129,0.28);}
@@ -299,6 +308,9 @@ body{padding-bottom:78px;}
 .pay-open-label{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--ink-soft);}
 .pay-opening{width:130px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--paper-card);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 
+.pay-add-wrap{display:flex;align-items:center;gap:8px;}
+.pay-add-wrap .pay-opening{width:110px;}
+.pay-topup-btn{background:var(--btn-green,#2F6F4E);color:#fff;border:none;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap;}
 .acct-edit-btn{background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
 .acct-x{position:absolute;top:8px;right:8px;z-index:2;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,0.35);color:#fff;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .acct-x:hover{background:rgba(0,0,0,0.55);}
@@ -419,7 +431,7 @@ body{padding-bottom:78px;}
   <div class="ins-summary">
     <div class="ins-card inc"><span class="ins-ico">💰</span><div class="ins-lbl">Income</div><div class="ins-val" id="insIncome">—</div></div>
     <div class="ins-card exp"><span class="ins-ico">💸</span><div class="ins-lbl">Expenses</div><div class="ins-val" id="insExpense">—</div></div>
-    <div class="ins-card net"><span class="ins-ico">✨</span><div class="ins-lbl">Net</div><div class="ins-val" id="insNet">—</div><div class="ins-sub" id="insSub"></div></div>
+    <div class="ins-card net" id="insNetCard"><span class="ins-ico">✨</span><div class="ins-lbl">Net</div><div class="ins-val" id="insNet">—</div><div class="ins-sub" id="insSub"></div></div>
   </div>
 
   <div class="section sec-trend">
@@ -509,6 +521,16 @@ body{padding-bottom:78px;}
   </div>
 
   <div class="section">
+    <div class="section-head"><h2 class="section-title">🧮 Insight cards</h2></div>
+    <div class="section-body">
+      <div class="switch-row">
+        <div class="sw-text"><b>Show Net card</b>Net = Income − Expenses. Turn off to show only Income and Expenses on the Insight page.</div>
+        <button type="button" class="switch on" id="showNetToggle" role="switch" aria-checked="true" aria-label="Show Net card"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-head"><h2 class="section-title">💱 Currency</h2></div>
     <div class="section-body">
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Pick the currency shown across the app. This changes the symbol only — existing amounts are not converted.</div>
@@ -519,7 +541,7 @@ body{padding-bottom:78px;}
   <div class="section">
     <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Enter an opening balance (what was already in it) so the balance on Home is accurate.</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Use “Add money” whenever you top up an account — it’s added to the balance shown on Home straight away.</div>
       <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
       <div class="filters" style="margin-bottom:0;">
         <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
@@ -656,6 +678,7 @@ let items = [];
 let expenses = [];
 let paymentMethods = [...DEFAULT_PAYMENT_METHODS];
 let openingBalances = {};
+let topups = []; // money added to an account: {id,date,account,amount}
 let acctEditMode = false;
 let currency = 'INR';
 let period = 'daily';
@@ -764,13 +787,14 @@ function connectSync(code){
       expenses = withDefaultType(data.expenses);
       paymentMethods = resolvePaymentMethods(data.paymentMethods, expenses);
       openingBalances = data.openingBalances || {};
+      topups = Array.isArray(data.topups) ? data.topups : [];
       currency = data.currency || 'INR'; applyCurrency();
-      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }));
+      localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, topups, currency }));
       renderAll();
       applyingRemote = false;
     } else {
       // first time this code is used — seed it with whatever's local
-      ref.set({ items, expenses, paymentMethods, openingBalances, currency });
+      ref.set({ items, expenses, paymentMethods, openingBalances, topups, currency });
     }
   }, (err)=>{
     showToast("Sync error — check your connection.");
@@ -822,6 +846,7 @@ async function loadData(){
     expenses = withDefaultType(parsed.expenses);
     paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
     openingBalances = parsed.openingBalances || {};
+    topups = Array.isArray(parsed.topups) ? parsed.topups : [];
     currency = parsed.currency || 'INR';
     // Brand-new install (nothing saved, nothing synced down yet) — seed some
     // common item names so autocomplete has something to suggest immediately,
@@ -834,19 +859,19 @@ async function loadData(){
       items = seedItemLibrary();
     }
   }catch(e){
-    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS]; openingBalances = {}; currency = 'INR';
+    items = []; expenses = []; paymentMethods = [...DEFAULT_PAYMENT_METHODS]; openingBalances = {}; topups = []; currency = 'INR';
   }
 }
 
 async function saveData(){
   try{
-    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }));
+    localStorage.setItem('ledger-data', JSON.stringify({ items, expenses, paymentMethods, openingBalances, topups, currency }));
   }catch(e){
     showToast("Couldn't save locally — your browser storage may be full.");
   }
   if(db && syncCode && !applyingRemote){
     try{
-      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods, openingBalances, currency });
+      await db.collection('ledger').doc(syncCode).set({ items, expenses, paymentMethods, openingBalances, topups, currency });
     }catch(e){
       showToast("Saved locally — cloud sync failed.");
     }
@@ -854,7 +879,7 @@ async function saveData(){
 }
 
 function exportBackup(){
-  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods, openingBalances, currency }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ items, expenses, paymentMethods, openingBalances, topups, currency }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `ledger-backup-${todayStr()}.json`;
@@ -873,6 +898,7 @@ function importBackup(file){
       items = withDefaultType(parsed.items); expenses = withDefaultType(parsed.expenses);
       paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
       openingBalances = parsed.openingBalances || {};
+    topups = Array.isArray(parsed.topups) ? parsed.topups : [];
       currency = parsed.currency || currency; applyCurrency();
       await saveData();
       renderAll();
@@ -1006,19 +1032,33 @@ function renderPaymentMethods(){
       <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
       <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:${(bal[p]||0)<0?'var(--coral)':'var(--green)'};">${moneySigned(bal[p]||0)}</span>
       <button class="icon-btn danger pay-remove-btn" title="${usageCount(p) ? 'In use — can\'t delete' : 'Delete'}" style="${usageCount(p) ? 'opacity:.35;' : ''}">✕</button>
-      <label class="pay-open-label">Opening balance
-        <input type="number" step="0.01" class="pay-opening" placeholder="0.00" value="${openingBalances[p] ? openingBalances[p] : ''}" />
-      </label>
+      <div class="pay-open-label">
+        <span>Add money</span>
+        <span class="pay-add-wrap">
+          <input type="number" step="0.01" min="0" inputmode="decimal" class="pay-opening pay-topup-input" placeholder="0.00" />
+          <button type="button" class="pay-topup-btn">+ Add</button>
+        </span>
+      </div>
     </div>`).join('');
 }
-$('paymentMethodList').addEventListener('change', async (ev)=>{
-  const inp = ev.target.closest('.pay-opening'); if(!inp) return;
-  const p = inp.closest('.pay-method-row').dataset.pay;
-  const v = parseFloat(inp.value);
-  if(isNaN(v) || v === 0) delete openingBalances[p]; else openingBalances[p] = v;
+async function addMoney(p, amount){
+  if(!(amount > 0)){ showToast('Enter an amount greater than 0'); return false; }
+  topups.push({ id: uid(), date: todayStr(), account: p, amount, createdAt: Date.now() });
   await saveData();
   renderAll();
-  showToast('Opening balance saved');
+  showToast(money(amount) + ' added to ' + p);
+  return true;
+}
+$('paymentMethodList').addEventListener('click', async (ev)=>{
+  const btn = ev.target.closest('.pay-topup-btn'); if(!btn) return;
+  const row = btn.closest('.pay-method-row');
+  const inp = row.querySelector('.pay-topup-input');
+  await addMoney(row.dataset.pay, parseFloat(inp.value));
+});
+$('paymentMethodList').addEventListener('keydown', (ev)=>{
+  if(ev.key !== 'Enter' || !ev.target.classList.contains('pay-topup-input')) return;
+  ev.preventDefault();
+  ev.target.closest('.pay-method-row').querySelector('.pay-topup-btn').click();
 });
 async function removeAccount(p){
   if(paymentMethods.length <= 1){ showToast('Keep at least one account'); return; }
@@ -1027,11 +1067,12 @@ async function removeAccount(p){
     showToast(`"${p}" is used by ${used} transaction${used>1?'s':''} — edit or delete those first`);
     return;
   }
-  const opening = Number(openingBalances[p]) || 0;
-  const extra = opening ? ` Its opening balance (${money(opening)}) will no longer count toward your total.` : '';
+  const opening = (Number(openingBalances[p]) || 0) + topups.filter(t=>t.account===p).reduce((x,t)=>x+(Number(t.amount)||0),0);
+  const extra = opening ? ` Its balance (${money(opening)}) will no longer count toward your total.` : '';
   if(!confirm(`Delete "${p}"?${extra}`)) return;
   paymentMethods = paymentMethods.filter(x=>x!==p);
   delete openingBalances[p];
+  topups = topups.filter(t=>t.account!==p);
   await saveData();
   renderAll();
   showToast('Deleted "' + p + '"');
@@ -1063,12 +1104,13 @@ function sumByType(from, to, type){
   return expenses.filter(e=>e.date>=from && e.date<=to && (e.type||'expense')===type).reduce((s,e)=>s+Number(e.amount),0);
 }
 function accountBalances(){
-  // Balance = opening balance + income received − expenses paid, ± transfers.
+  // Balance = earlier base balance + added money + income received − expenses paid, ± transfers.
   // Transfers only move money between two accounts, so they never touch the
   // income/expense totals — only these per-account balances.
   const bal = {};
   const add = (k, v) => { if(k) bal[k] = (bal[k] || 0) + v; };
   paymentMethods.forEach(p => add(p, Number(openingBalances[p]) || 0));
+  topups.forEach(t => add(t.account, Number(t.amount) || 0));
   expenses.forEach(e=>{
     const t = e.type || 'expense', a = Number(e.amount) || 0;
     if(t === 'income') add(e.paymentMethod, a);
@@ -1112,7 +1154,7 @@ function renderStats(){
   $('statIncome').textContent = money(incomeMonth);
   $('statExpense').textContent = money(expenseMonth);
 
-  // headline number = net worth across every account (opening balances +
+  // headline number = net worth across every account (added money +
   // all income/expenses/transfers), not tied to any single month
   const balances = accountBalances();
   const balAll = Object.keys(balances).reduce((s,n)=>s+balances[n], 0);
@@ -1928,6 +1970,18 @@ $('currencySelect').addEventListener('change', async ()=>{
   renderAll();
   showToast('Currency set to ' + currency);
 });
+function getShowNet(){ try{ return localStorage.getItem('ledger-show-net') !== '0'; }catch(e){ return true; } }
+function applyShowNet(){
+  const on = getShowNet();
+  const grid = document.querySelector('.ins-summary'); if(grid) grid.classList.toggle('no-net', !on);
+  const t = $('showNetToggle'); if(t){ t.classList.toggle('on', on); t.setAttribute('aria-checked', on ? 'true' : 'false'); }
+}
+$('showNetToggle').addEventListener('click', ()=>{
+  const next = !getShowNet();
+  try{ localStorage.setItem('ledger-show-net', next ? '1' : '0'); }catch(e){}
+  applyShowNet();
+  showToast(next ? 'Net card shown' : 'Net card hidden');
+});
 $('acctEditBtn').addEventListener('click', ()=>{ acctEditMode = !acctEditMode; renderAccounts(); });
 $('acctCards').addEventListener('click', (ev)=>{
   const x = ev.target.closest('.acct-x'); if(!x) return;
@@ -1955,6 +2009,7 @@ if('serviceWorker' in navigator){
 
 (async function init(){
   applyTheme(currentTheme());
+  applyShowNet();
   initFirebase();
   await loadData();
   applyCurrency();
