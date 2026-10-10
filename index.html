@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Ledger — Expense Manager</title>
+<title>Expense Tracker</title>
 <link rel="manifest" href="/manifest.json" />
 <link rel="icon" href="/icons/icon-192.png" />
 <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <meta name="theme-color" content="#1C2B39" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Ledger" />
+<meta name="apple-mobile-web-app-title" content="Expense Tracker" />
 <script>try{if(localStorage.getItem("ledger-theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -49,9 +50,10 @@ body{
 .header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:28px;}
 .brand h1{
   font-family:'Space Grotesk',sans-serif;
-  font-size:34px;font-weight:700;margin:0;letter-spacing:-0.5px;
+  font-size:clamp(26px,8.5vw,34px);font-weight:700;margin:0;letter-spacing:-0.5px;
   display:flex;align-items:center;gap:10px;
 }
+.brand h1 .logo{width:40px;height:40px;flex:none;}
 .brand h1 .mark{
   width:30px;height:30px;border-radius:6px;background:var(--ink);
   display:inline-flex;align-items:center;justify-content:center;
@@ -444,7 +446,7 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
 
   <div class="header">
     <div class="brand">
-      <h1><span class="mark">₹</span>Ledger</h1>
+      <h1><svg class="logo" viewBox="0 0 64 64" aria-label="Expense Tracker"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4F46E5"/><stop offset="1" stop-color="#9333EA"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lg)"/><rect x="13" y="38" width="9" height="14" rx="3" fill="#fff" opacity=".55"/><rect x="27" y="30" width="9" height="22" rx="3" fill="#fff" opacity=".8"/><rect x="41" y="22" width="9" height="30" rx="3" fill="#fff"/><circle cx="21" cy="19" r="10" fill="#FBBF24"/><circle cx="21" cy="19" r="5.5" fill="none" stroke="#B45309" stroke-width="2.4"/></svg>Expense Tracker</h1>
       <p>Track what you spend and earn, one line at a time.</p>
     </div>
   </div>
@@ -495,7 +497,7 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
       <div class="overview-grid">
         <div class="overview-total">
           <div class="label" id="periodLabel">Today's spending</div>
-          <div class="amount" id="periodTotal">₹0</div>
+          <div class="amount" id="periodTotal">0</div>
           <div class="cat-rows" id="catRows"></div>
         </div>
         <div class="chart-box"><canvas id="catChart"></canvas><div class="empty-note" id="chartEmpty" style="display:none;">No expenses in this period yet.</div></div>
@@ -841,17 +843,34 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
 <div class="overlay" id="syncOverlay">
   <div class="modal">
     <h3>Sync across devices</h3>
-    <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-8px;">
-      Set a private sync code, then enter this <em>exact same code</em> on your other devices/browsers.
-      Anyone with this code can read and edit this data — keep it like a password.
-    </p>
-    <div class="field">
-      <label>Sync code</label>
-      <input type="text" id="syncCodeInput" placeholder="e.g. jestin-ledger-2026" autocomplete="off"/>
+    <div id="authIn" style="display:none;">
+      <p style="font-size:14px;margin-top:-6px;">Signed in as <b id="authWho"></b>. Your data saves to your account automatically and follows you to any device you sign in on.</p>
+      <div class="modal-actions"><button class="btn-ghost" id="authOut" type="button">Sign out</button><button class="btn-primary" id="authDone" type="button">Done</button></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" id="cancelSyncBtn">Cancel</button>
-      <button class="btn-primary" id="saveSyncBtn">Connect</button>
+    <div id="authOutWrap">
+      <p style="font-size:13.5px;color:var(--ink-soft);margin-top:-8px;">Sign in with your email or phone number. Your data is stored under your account, so it is safe if you lose or change your phone.</p>
+      <div class="tabs" id="authTabs" style="margin-bottom:12px;"><button class="tab active" data-m="email" type="button">Email</button><button class="tab" data-m="phone" type="button">Phone</button></div>
+      <div id="authEmail">
+        <div class="field"><label>Email</label><input type="email" id="authEmailIn" autocomplete="email" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="authPass" autocomplete="current-password" placeholder="At least 6 characters"/></div>
+        <div style="display:flex;gap:8px;"><button class="btn-primary" id="authSignIn" type="button" style="flex:1;">Sign in</button><button class="btn-ghost" id="authCreate" type="button" style="flex:1;background:var(--paper);">Create account</button></div>
+        <button class="chip" id="authReset" type="button" style="margin-top:10px;">Forgot password?</button>
+      </div>
+      <div id="authPhone" style="display:none;">
+        <div class="field"><label>Phone number (with country code)</label><input type="tel" id="authPhoneIn" autocomplete="tel" placeholder="+91 98765 43210"/></div>
+        <button class="btn-primary" id="authSend" type="button" style="width:100%;">Send code</button>
+        <div id="authCodeWrap" style="display:none;margin-top:12px;">
+          <div class="field"><label>6-digit code</label><input type="text" id="authCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code"/></div>
+          <button class="btn-primary" id="authVerify" type="button" style="width:100%;">Verify &amp; sign in</button>
+        </div>
+      </div>
+      <div id="recaptcha"></div>
+      <div id="authMsg" style="font-size:12.5px;color:var(--coral);min-height:18px;margin:10px 0;"></div>
+      <details class="drop"><summary>Advanced: sync code ▾</summary>
+        <p style="font-size:13px;color:var(--ink-soft);">Older method: use the <em>same code</em> on each device. Anyone with the code can read and edit this data — keep it like a password.</p>
+        <div class="field"><label>Sync code</label><input type="text" id="syncCodeInput" placeholder="e.g. my-private-code-2026" autocomplete="off"/></div>
+        <div class="modal-actions"><button class="btn-ghost" id="cancelSyncBtn">Cancel</button><button class="btn-primary" id="saveSyncBtn">Connect</button></div>
+      </details>
     </div>
   </div>
 </div>
@@ -959,6 +978,12 @@ function applyTheme(mode){
 }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function todayStr(){ return toStr(new Date()); }
+function defaultCurrency(){
+  const r = ((navigator.language||'en-US').split('-')[1]||'').toUpperCase();
+  const m = { IN:'INR', JP:'JPY', US:'USD', GB:'GBP', AU:'AUD', CA:'CAD', SG:'SGD', CN:'CNY', KR:'KRW', AE:'AED', CH:'CHF' };
+  const eu = ['DE','FR','ES','IT','NL','BE','AT','IE','PT','FI','GR','LU','SK','SI','EE','LV','LT','MT','CY','HR'];
+  return m[r] || (eu.includes(r) ? 'EUR' : 'USD');
+}
 const CURRENCIES = [
   { code:'INR', symbol:'₹',   name:'Indian Rupee',       locale:'en-IN', digits:2 },
   { code:'JPY', symbol:'¥',   name:'Japanese Yen',       locale:'en-US', digits:0 },
@@ -1006,7 +1031,7 @@ const firebaseConfig = {
   messagingSenderId: "1049428699629",
   appId: "1:1049428699629:web:0723db58ce234ad2ee5fe4"
 };
-let fbApp = null, db = null, unsubscribe = null;
+let fbApp = null, db = null, auth = null, authUser = null, unsubscribe = null;
 let syncCode = localStorage.getItem('ledger-sync-code') || '';
 let applyingRemote = false; // guard to avoid re-writing what we just received
 
@@ -1014,11 +1039,12 @@ function initFirebase(){
   try{
     fbApp = firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    try{ auth = firebase.auth(); }catch(e){}
   }catch(e){ /* already initialized or unavailable — local-only mode still works */ }
 }
 
 function updateSyncLabel(){
-  $('syncLabel').textContent = syncCode ? `Synced: ${syncCode}` : 'Set up sync';
+  $('syncLabel').textContent = authUser ? `Synced: ${authUser.email || authUser.phoneNumber}` : syncCode ? `Synced: ${syncCode}` : 'Set up sync';
 }
 
 function resolvePaymentMethods(list, expenseList){
@@ -1028,14 +1054,22 @@ function resolvePaymentMethods(list, expenseList){
   return base;
 }
 
+function syncRef(){
+  if(!db) return null;
+  if(authUser) return db.collection('users').doc(authUser.uid);
+  return syncCode ? db.collection('ledger').doc(syncCode) : null;
+}
 function connectSync(code){
-  syncCode = code.trim();
+  syncCode = (code||'').trim();
   localStorage.setItem('ledger-sync-code', syncCode);
+  startSync();
+}
+function startSync(){
   updateSyncLabel();
   if(unsubscribe) unsubscribe();
-  if(!db || !syncCode) return;
+  const ref = syncRef();
+  if(!db || !ref) return;
 
-  const ref = db.collection('ledger').doc(syncCode);
   unsubscribe = ref.onSnapshot((doc)=>{
     if(doc.exists){
       const data = doc.data();
@@ -1104,7 +1138,7 @@ async function loadData(){
     paymentMethods = resolvePaymentMethods(parsed.paymentMethods, expenses);
     openingBalances = parsed.openingBalances || {};
     topups = Array.isArray(parsed.topups) ? parsed.topups : []; loadExtra(parsed);
-    currency = parsed.currency || 'INR';
+    currency = parsed.currency || defaultCurrency();
     // Brand-new install (nothing saved, nothing synced down yet) — seed some
     // common item names so autocomplete has something to suggest immediately,
     // instead of staying empty until the person has typed each item once.
@@ -1126,9 +1160,10 @@ async function saveData(){
   }catch(e){
     showToast("Couldn't save locally — your browser storage may be full.");
   }
-  if(db && syncCode && !applyingRemote){
+  const sref = syncRef();
+  if(db && sref && !applyingRemote){
     try{
-      await db.collection('ledger').doc(syncCode).set(snap());
+      await sref.set(snap());
     }catch(e){
       showToast("Saved locally — cloud sync failed.");
     }
@@ -1139,7 +1174,7 @@ function exportBackup(){
   const blob = new Blob([JSON.stringify(snap(), null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `ledger-backup-${todayStr()}.json`;
+  a.href = url; a.download = `expense-tracker-backup-${todayStr()}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
   showToast('Backup downloaded');
@@ -1161,7 +1196,7 @@ function importBackup(file){
       renderAll();
       showToast('Backup restored');
     }catch(err){
-      showToast('Could not read that file — is it a Ledger backup?');
+      showToast('Could not read that file — is it an Expense Tracker backup?');
     }
   };
   reader.readAsText(file);
@@ -2501,7 +2536,7 @@ document.querySelectorAll('.overlay').forEach(ov=>{
 });
 
 /* ---------- Extras: notes/tags/receipts, categories, goals, summary, tour ---------- */
-const APP_NAME = 'Ledger';
+const APP_NAME = 'Expense Tracker';
 const rcDB = () => new Promise((res,rej)=>{ const r = indexedDB.open('ledger-receipts',1); r.onupgradeneeded = ()=>r.result.createObjectStore('r'); r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error); });
 async function rcTx(mode, fn){ const db = await rcDB(); return new Promise((res,rej)=>{ const t = db.transaction('r',mode); const rq = fn(t.objectStore('r')); t.oncomplete = ()=>res(rq && rq.result); t.onerror = ()=>rej(t.error); }); }
 const rcPut = (id,d)=>rcTx('readwrite',s=>s.put(d,id)).catch(()=>{});
@@ -2758,7 +2793,7 @@ const allSorted = ()=>[...expenses].sort((a,b)=>b.date.localeCompare(a.date) || 
 $('csvBtn').addEventListener('click', ()=>{
   const rows = [['Date','Type','Item','Category','Payment','To account','Amount','Note','Tags']].concat(allSorted().map(e=>[e.date, e.type||'expense', e.itemName, e.category, e.paymentMethod, e.toMethod||'', e.amount, e.note||'', (e.tags||[]).join(' ')]));
   const blob = new Blob(['\ufeff' + rows.map(r=>r.map(csvCell).join(',')).join('\n')], { type:'text/csv;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ledger-export-${todayStr()}.csv`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `expense-tracker-export-${todayStr()}.csv`;
   document.body.appendChild(a); a.click(); a.remove(); showToast('CSV downloaded — opens in Excel');
 });
 $('pdfBtn').addEventListener('click', ()=>{
@@ -2794,6 +2829,69 @@ function renderVariety(){
   }catch(e){ empty('This chart could not be drawn right now.'); }
 }
 
+/* ---------- Account sign-in (email / phone) ---------- */
+function applyData(d){
+  items = withDefaultType(d.items); expenses = withDefaultType(d.expenses);
+  paymentMethods = resolvePaymentMethods(d.paymentMethods, expenses);
+  openingBalances = d.openingBalances || {}; topups = Array.isArray(d.topups) ? d.topups : []; loadExtra(d);
+  currency = d.currency || 'INR'; applyCurrency(); renderAll();
+}
+function mergeData(L, C){
+  const byKey = (a, b, k)=>{ const m = new Map(); (b||[]).forEach(x=>m.set(k(x),x)); (a||[]).forEach(x=>{ if(!m.has(k(x))) m.set(k(x),x); }); return [...m.values()]; };
+  const id = (x)=>x.id, itemKey = (x)=>[x.type||'expense', x.category, String(x.name).toLowerCase()].join('|');
+  const cc = (t)=>byKey(L.customCats&&L.customCats[t], C.customCats&&C.customCats[t], (x)=>x.name);
+  const hid = (t)=>[...new Set([...(L.hiddenCats&&L.hiddenCats[t]||[]), ...(C.hiddenCats&&C.hiddenCats[t]||[])])];
+  return { items: byKey(L.items, C.items, itemKey), expenses: byKey(L.expenses, C.expenses, id), topups: byKey(L.topups, C.topups, id),
+    goals: byKey(L.goals, C.goals, id), recurring: byKey(L.recurring, C.recurring, id),
+    paymentMethods: [...new Set([...(C.paymentMethods||[]), ...(L.paymentMethods||[])])],
+    openingBalances: { ...(L.openingBalances||{}), ...(C.openingBalances||{}) }, budgets: { ...(L.budgets||{}), ...(C.budgets||{}) },
+    customCats: { expense: cc('expense'), income: cc('income') }, hiddenCats: { expense: hid('expense'), income: hid('income') },
+    currency: C.currency || L.currency };
+}
+async function linkAccount(){
+  const ref = syncRef(); if(!db || !ref) return;
+  try{
+    const doc = await ref.get(), out = doc.exists ? mergeData(snap(), doc.data()) : snap();
+    applyData(out); localStorage.setItem('ledger-data', JSON.stringify(snap())); await ref.set(snap());
+  }catch(e){ showToast('Could not link your account — check your connection.'); }
+  startSync();
+}
+const AUTH_ERR = { 'auth/invalid-email':'That email doesn’t look right.', 'auth/missing-password':'Enter your password.', 'auth/weak-password':'Use at least 6 characters.',
+  'auth/email-already-in-use':'That email already has an account — tap Sign in.', 'auth/invalid-credential':'Wrong email or password.', 'auth/wrong-password':'Wrong email or password.',
+  'auth/user-not-found':'No account for that email — tap Create account.', 'auth/too-many-requests':'Too many tries — please wait a bit.',
+  'auth/operation-not-allowed':'This sign-in method isn’t switched on yet (Firebase console → Authentication → Sign-in method).',
+  'auth/invalid-phone-number':'Use the full number with country code, like +919876543210.', 'auth/invalid-verification-code':'That code is wrong.', 'auth/code-expired':'Code expired — send a new one.',
+  'auth/unauthorized-domain':'This website isn’t added to Firebase authorized domains yet.', 'auth/network-request-failed':'No connection.' };
+const authFail = (e)=>{ $('authMsg').style.color = 'var(--coral)'; $('authMsg').textContent = AUTH_ERR[e.code] || ('Sign-in failed (' + (e.code||'error') + ')'); };
+const authOk = (m)=>{ $('authMsg').style.color = 'var(--green)'; $('authMsg').textContent = m; };
+function renderAuth(){
+  const who = authUser && (authUser.email || authUser.phoneNumber);
+  $('authIn').style.display = authUser ? '' : 'none'; $('authOutWrap').style.display = authUser ? 'none' : '';
+  if(who) $('authWho').textContent = who; updateSyncLabel();
+}
+function authReady(){ if(auth) return true; $('authMsg').style.color = 'var(--coral)'; $('authMsg').textContent = 'Sign-in is unavailable right now (check your connection).'; return false; }
+$('authTabs').addEventListener('click', (ev)=>{ const b = ev.target.closest('.tab'); if(!b) return; document.querySelectorAll('#authTabs .tab').forEach(t=>t.classList.toggle('active',t===b)); $('authEmail').style.display = b.dataset.m==='email' ? '' : 'none'; $('authPhone').style.display = b.dataset.m==='phone' ? '' : 'none'; $('authMsg').textContent = ''; });
+const emailPass = ()=>[$('authEmailIn').value.trim(), $('authPass').value];
+$('authSignIn').addEventListener('click', async ()=>{ if(!authReady()) return; try{ await auth.signInWithEmailAndPassword(...emailPass()); $('syncOverlay').classList.remove('open'); showToast('Signed in ✅'); }catch(e){ authFail(e); } });
+$('authCreate').addEventListener('click', async ()=>{ if(!authReady()) return; try{ await auth.createUserWithEmailAndPassword(...emailPass()); $('syncOverlay').classList.remove('open'); showToast('Account created ✅'); }catch(e){ authFail(e); } });
+$('authReset').addEventListener('click', async ()=>{ if(!authReady()) return; const em = $('authEmailIn').value.trim(); if(!em){ authFail({code:'auth/invalid-email'}); return; } try{ await auth.sendPasswordResetEmail(em); authOk('Password reset link sent — check your email.'); }catch(e){ authFail(e); } });
+let phoneVerifier = null, phoneConfirm = null;
+$('authSend').addEventListener('click', async ()=>{
+  if(!authReady()) return;
+  try{
+    if(!phoneVerifier) phoneVerifier = new firebase.auth.RecaptchaVerifier('recaptcha', { size:'invisible' });
+    phoneConfirm = await auth.signInWithPhoneNumber($('authPhoneIn').value.replace(/[\s-]/g,''), phoneVerifier);
+    $('authCodeWrap').style.display = ''; authOk('Code sent — enter it below.');
+  }catch(e){ try{ phoneVerifier && phoneVerifier.clear(); }catch(_){} phoneVerifier = null; authFail(e); }
+});
+$('authVerify').addEventListener('click', async ()=>{ try{ await phoneConfirm.confirm($('authCode').value.trim()); $('syncOverlay').classList.remove('open'); showToast('Signed in ✅'); }catch(e){ authFail(e); } });
+$('authOut').addEventListener('click', async ()=>{ if(auth) await auth.signOut(); showToast('Signed out — your data stays on this device'); });
+$('authDone').addEventListener('click', ()=>$('syncOverlay').classList.remove('open'));
+function initAuthListener(){
+  if(auth) auth.onAuthStateChanged((u)=>{ authUser = u; renderAuth(); if(u) linkAccount(); else startSync(); });
+  else renderAuth();
+}
+
 /* ---------- Init ---------- */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
@@ -2805,6 +2903,7 @@ if('serviceWorker' in navigator){
   applyTheme(currentTheme());
   applyShowNet();
   initFirebase();
+  initAuthListener();
   await loadData();
   applyCurrency();
   renderAll();
