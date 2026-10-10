@@ -528,10 +528,6 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
           <button class="chip" data-n="12" type="button">12 weeks</button>
         </div>
       </div>
-      <div class="wk-hero">
-        <div class="wk-box this"><div class="lbl">This week so far</div><div class="val" id="wkThisVal">—</div><div class="sub" id="wkThisSub"></div></div>
-        <div class="wk-box"><div class="lbl">Last week</div><div class="val" id="wkLastVal">—</div><div class="sub" id="wkLastSub"></div></div>
-      </div>
       <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Tap a bar to see that week's transactions.</div>
       <div class="wk-legend">
         <span><i style="background:#7C3AED"></i>This week</span>
@@ -540,20 +536,6 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
       </div>
       <div class="cwrap" id="wkChartWrap" style="height:260px;"><canvas id="wkChart"></canvas></div>
       <div class="empty-note" id="wkEmpty" style="display:none;"></div>
-    </div>
-  </div>
-
-  <div class="section sec-trend">
-    <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
-    <div class="section-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-        <div style="font-size:13px;color:var(--ink-soft);" id="trendPeriodLabel">This week vs. the 3 weeks before it</div>
-        <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
-        </div>
-      </div>
-      <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
 
@@ -571,6 +553,20 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
         <div class="cat-rows" id="insightCatRows"></div>
         <div class="chart-box"><canvas id="insightCatChart"></canvas><div class="empty-note" id="insightCatEmpty" style="display:none;"></div></div>
       </div>
+    </div>
+  </div>
+
+  <div class="section sec-trend">
+    <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
+    <div class="section-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div style="font-size:13px;color:var(--ink-soft);" id="trendPeriodLabel">This week vs. the 3 weeks before it</div>
+        <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
+        </div>
+      </div>
+      <div class="chart-box" style="height:240px;"><canvas id="weeklyTrendChart"></canvas><div class="empty-note" id="weeklyTrendEmpty" style="display:none;"></div></div>
     </div>
   </div>
 
@@ -1818,10 +1814,6 @@ function renderWeeklyComparison(){
   const word = wkType==='expense' ? 'spent' : 'earned';
   const noun = wkType==='expense' ? 'spending' : 'income';
 
-  $('wkThisVal').textContent = money(thisW.total);
-  $('wkThisSub').textContent = `${fmtShortDate(thisW.start)} – ${fmtShortDate(thisW.end)} · ${thisW.count} txn${thisW.count===1?'':'s'}`;
-  $('wkLastVal').textContent = money(lastW.total);
-  $('wkLastSub').textContent = `${fmtShortDate(lastW.start)} – ${fmtShortDate(lastW.end)} · ${lastW.count} txn${lastW.count===1?'':'s'}`;
   $('wkLegendPrev').style.background = wkType==='expense' ? '#F43F5E' : '#10B981';
 
   // Chart
