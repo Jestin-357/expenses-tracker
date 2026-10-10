@@ -577,24 +577,6 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
   <div class="section sec-pay">
     <div class="section-head"><h2 class="section-title">💳 By Payment Method</h2></div>
     <div class="section-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-        <div style="font-size:13px;color:var(--ink-soft);" id="paymentMethodPeriodLabel">Which card, cash, or account moves the most — this month</div>
-        <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
-        </div>
-      </div>
-      <div class="ins-controls">
-        <div class="chip-row" id="payGroupChips"></div>
-        <select class="ins-select" id="paySort" aria-label="Sort payment methods">
-          <option value="spent">Sort: Most spent</option>
-          <option value="received">Sort: Most received</option>
-          <option value="total">Sort: Total activity</option>
-          <option value="count">Sort: Most transactions</option>
-          <option value="name">Sort: Name A–Z</option>
-        </select>
-      </div>
-      <div class="pay-totals" id="payTotals"></div>
       <div class="cwrap" id="payChartWrap" style="height:240px;"><canvas id="paymentMethodChart"></canvas></div>
       <div class="empty-note" id="paymentMethodEmpty" style="display:none;"></div>
       <div class="pay-list" id="payList"></div>
@@ -1961,7 +1943,6 @@ function payDetailHtml(r){
     <h4>This account is a…</h4><div class="chip-row">${chips}</div>`;
 }
 function renderPaymentMethodChart(){
-  $('paymentMethodPeriodLabel').textContent = 'Which card, cash, or account moves the most — ' + insightPeriodLabel(insightPeriod).toLowerCase();
   const [pf, pt] = periodRange(insightPeriod);
   const inRange = expenses.filter(e=>e.date>=pf && e.date<=pt);
   const methods = [...new Set([...paymentMethods, ...inRange.map(e=>e.paymentMethod)])].filter(Boolean);
@@ -1975,11 +1956,6 @@ function renderPaymentMethodChart(){
   // Group chips (Banks / Cards / Wallets / Cash)
   const counts = {}; rows.forEach(r=>{ counts[r.group] = (counts[r.group]||0) + 1; });
   if(payGroupFilter !== 'all' && !counts[payGroupFilter]) payGroupFilter = 'all';
-  $('payGroupChips').innerHTML =
-    `<button type="button" class="chip ${payGroupFilter==='all'?'active':''}" data-group="all">All · ${rows.length}</button>` +
-    Object.entries(PAY_GROUPS).filter(([k])=>counts[k]).map(([k,g])=>`<button type="button" class="chip ${payGroupFilter===k?'active':''}" data-group="${k}">${g.icon} ${g.plural} · ${counts[k]}</button>`).join('');
-  $('paySort').value = paySort;
-
   const shown = rows.filter(r=> payGroupFilter==='all' || r.group===payGroupFilter);
   shown.sort((a,b)=>{
     if(paySort==='received') return b.income-a.income;
@@ -1989,11 +1965,7 @@ function renderPaymentMethodChart(){
     return b.expense-a.expense;
   });
 
-  const totExp = shown.reduce((s,r)=>s+r.expense,0), totInc = shown.reduce((s,r)=>s+r.income,0);
-  $('payTotals').innerHTML = shown.length ? `
-    <div><span>Spent</span><b class="neg">${money(totExp)}</b></div>
-    <div><span>Received</span><b class="pos">${money(totInc)}</b></div>
-    <div><span>Accounts</span><b>${shown.length}</b></div>` : '';
+  const totExp = shown.reduce((s,r)=>s+r.expense,0);
 
   const canvas = $('paymentMethodChart'), wrap = $('payChartWrap'), emptyNote = $('paymentMethodEmpty');
   if(paymentMethodChartInstance){ try{ paymentMethodChartInstance.destroy(); }catch(e){} paymentMethodChartInstance = null; }
@@ -2051,11 +2023,6 @@ function renderPaymentMethodChart(){
     </details>`;
   }).join('');
 }
-$('payGroupChips').addEventListener('click', (ev)=>{
-  const b = ev.target.closest('.chip'); if(!b) return;
-  payGroupFilter = b.dataset.group; renderPaymentMethodChart();
-});
-$('paySort').addEventListener('change', ()=>{ paySort = $('paySort').value; renderPaymentMethodChart(); });
 $('payList').addEventListener('click', (ev)=>{
   const b = ev.target.closest('[data-setgroup]'); if(!b) return;
   ev.preventDefault();
