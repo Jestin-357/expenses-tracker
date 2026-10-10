@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Ledger — Expense Manager</title>
 <link rel="manifest" href="/manifest.json" />
 <link rel="icon" href="/icons/icon-192.png" />
@@ -426,6 +426,7 @@ body{padding-bottom:78px;}
   .wk-box .val{font-size:16px;}
   .range-inputs .field input{font-size:13px;padding:9px 8px;}
 }
+html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
 </style>
 </head>
 <body>
@@ -531,7 +532,7 @@ body{padding-bottom:78px;}
         <div class="wk-box this"><div class="lbl">This week so far</div><div class="val" id="wkThisVal">—</div><div class="sub" id="wkThisSub"></div></div>
         <div class="wk-box"><div class="lbl">Last week</div><div class="val" id="wkLastVal">—</div><div class="sub" id="wkLastSub"></div></div>
       </div>
-      <div class="wk-msg" id="wkMessage"></div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">Tap a bar to see that week's transactions.</div>
       <div class="wk-legend">
         <span><i style="background:#7C3AED"></i>This week</span>
         <span><i id="wkLegendPrev" style="background:#F43F5E"></i>Earlier weeks</span>
@@ -539,55 +540,6 @@ body{padding-bottom:78px;}
       </div>
       <div class="cwrap" id="wkChartWrap" style="height:260px;"><canvas id="wkChart"></canvas></div>
       <div class="empty-note" id="wkEmpty" style="display:none;"></div>
-      <div class="wk-list" id="wkList"></div>
-    </div>
-  </div>
-
-  <div class="section sec-range">
-    <div class="section-head"><h2 class="section-title">📅 Pick Dates</h2></div>
-    <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Choose any start and end date to see exactly what you earned and spent in between.</div>
-      <div class="chip-row" id="rangePresets" style="margin-bottom:12px;">
-        <button class="chip" data-p="today" type="button">Today</button>
-        <button class="chip" data-p="last7" type="button">Last 7 days</button>
-        <button class="chip" data-p="last30" type="button">Last 30 days</button>
-        <button class="chip" data-p="thisMonth" type="button">This month</button>
-        <button class="chip" data-p="lastMonth" type="button">Last month</button>
-        <button class="chip" data-p="thisYear" type="button">This year</button>
-      </div>
-      <div class="range-inputs">
-        <div class="field" style="margin:0;"><label>From</label><input type="date" id="rangeFrom"/></div>
-        <div class="field" style="margin:0;"><label>To</label><input type="date" id="rangeTo"/></div>
-      </div>
-      <button class="chip" id="rangeCalToggle" type="button" style="margin:12px 0 8px;">🙈 Hide calendar</button>
-      <div class="cal" id="rangeCal">
-        <div class="cal-head">
-          <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
-          <div class="cal-title" id="calTitle"></div>
-          <button class="icon-btn" id="calNext" type="button" aria-label="Next month">›</button>
-        </div>
-        <div class="cal-dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
-        <div class="cal-grid" id="rangeCalGrid"></div>
-        <div class="cal-hint" id="calHint">Tap a start date, then an end date. A dot means something was logged that day.</div>
-      </div>
-      <div class="range-label" id="rangeLabel"></div>
-      <div class="range-tiles" id="rangeTiles"></div>
-      <div class="filters" style="margin-top:14px;">
-        <select id="rangeType">
-          <option value="">All types</option>
-          <option value="expense">Expenses</option>
-          <option value="income">Income</option>
-          <option value="transfer">Transfers</option>
-        </select>
-        <select id="rangeSort">
-          <option value="new">Newest first</option>
-          <option value="old">Oldest first</option>
-          <option value="high">Highest amount</option>
-          <option value="low">Lowest amount</option>
-        </select>
-      </div>
-      <div class="tape" id="rangeList"></div>
-      <button class="clear-btn" id="rangeMore" type="button" style="margin-top:12px;display:none;width:100%;"></button>
     </div>
   </div>
 
@@ -823,6 +775,9 @@ body{padding-bottom:78px;}
     </div>
   </div>
 </div>
+
+<!-- Weekly bar popup -->
+<div class="overlay" id="wkPopup"><div class="modal" style="max-width:380px;padding:16px;"><div id="wkPopupHead"></div><div id="wkPopupList" style="max-height:55vh;overflow-y:auto;"></div></div></div>
 
 <div class="toast" id="toast"></div>
 
@@ -1887,46 +1842,6 @@ function renderWeeklyComparison(){
   $('wkLastSub').textContent = `${fmtShortDate(lastW.start)} – ${fmtShortDate(lastW.end)} · ${lastW.count} txn${lastW.count===1?'':'s'}`;
   $('wkLegendPrev').style.background = wkType==='expense' ? '#F43F5E' : '#10B981';
 
-  // Chatty summary
-  const dow = new Date().getDay();
-  const samePoint = sumByType(lastW.start, addDaysStr(lastW.start, dow), wkType);
-  const msgs = [];
-  if(!thisW.total && !lastW.total){
-    msgs.push(`Nothing logged yet for this week or last week.`);
-  } else {
-    const diff = thisW.total - lastW.total;
-    const pct = pctChange(thisW.total, lastW.total);
-    const cls = wkDeltaClass(diff);
-    msgs.push(`So far this week you've ${word} <b>${money(thisW.total)}</b> — <span class="${cls}">${money(Math.abs(diff))} ${diff>=0?'more':'less'}${pct!==null?` (${Math.abs(pct)}%)`:''}</span> than all of last week.`);
-    const paceDiff = thisW.total - samePoint;
-    msgs.push(`By this same day last week you had ${word} ${money(samePoint)}, so you're <span class="${wkDeltaClass(paceDiff)}">${money(Math.abs(paceDiff))} ${paceDiff>=0?'ahead of':'behind'}</span> that pace.`);
-  }
-  if(completed.length && avg>0){
-    const best = completed.reduce((a,b)=> (wkType==='expense' ? (b.total<a.total?b:a) : (b.total>a.total?b:a)));
-    msgs.push(`Your average over the last ${completed.length} full week${completed.length===1?'':'s'} is <b>${money(avg)}</b>. ${wkType==='expense'?'Lightest':'Best'} week: ${fmtShortDate(best.start)} – ${fmtShortDate(best.end)} (${money(best.total)}).`);
-  }
-  $('wkMessage').innerHTML = msgs.map(m=>`<p>${m}</p>`).join('');
-
-  // Week-by-week list (newest first)
-  const max = Math.max(1, ...shown.map(b=>b.total));
-  const base = wkType==='expense' ? 'linear-gradient(90deg,#F43F5E,#FB7185)' : 'linear-gradient(90deg,#10B981,#34D399)';
-  $('wkList').innerHTML = [...shown].reverse().map(b=>{
-    const idx = all.indexOf(b), prev = all[idx-1];
-    const diff = b.total - prev.total;
-    const pct = pctChange(b.total, prev.total);
-    let dl = '—', cls = '';
-    if(prev.total === 0 && b.total > 0){ dl = 'new'; }
-    else if(prev.total !== 0){ dl = (diff>0?'▲ ':diff<0?'▼ ':'') + Math.abs(pct) + '%'; cls = wkDeltaClass(diff); }
-    const tag = b.offset===0 ? 'This week (so far)' : b.offset===1 ? 'Last week' : `${b.offset} weeks ago`;
-    return `
-    <div class="wk-row">
-      <div class="nm"><b>${tag}</b><span>${fmtShortDate(b.start)} – ${fmtShortDate(b.end)} · ${b.count} txn${b.count===1?'':'s'}</span></div>
-      <div class="amt">${money(b.total)}</div>
-      <div class="dl ${cls}" title="Change vs. the week before">${dl}</div>
-      <div class="bar"><i style="width:${Math.max(b.total?3:0, b.total/max*100)}%;background:${b.offset===0?'linear-gradient(90deg,#6366F1,#9333EA)':base};"></i></div>
-    </div>`;
-  }).join('');
-
   // Chart
   const canvas = $('wkChart'), wrap = $('wkChartWrap'), note = $('wkEmpty');
   if(weeklyCmpChartInstance){ try{ weeklyCmpChartInstance.destroy(); }catch(e){} weeklyCmpChartInstance = null; }
@@ -1952,6 +1867,11 @@ function renderWeeklyComparison(){
       options:{
         responsive:true, maintainAspectRatio:false,
         layout:{ padding:{ top:22 } },
+        onClick:(evt, els, chart)=>{
+          const pts = chart.getElementsAtEventForMode(evt.native || evt, 'index', { intersect:false }, true);
+          if(pts.length) openWeekPopup(shown[pts[0].index]);
+        },
+        onHover:(evt, els)=>{ canvas.style.cursor = els.length ? 'pointer' : 'default'; },
         plugins:{
           legend:{ display:false },
           valueLabels:{ fmt: n>6 ? moneyCompact : moneyWhole },
@@ -1968,6 +1888,22 @@ function renderWeeklyComparison(){
     note.textContent = 'Chart unavailable right now — the weekly list below is still accurate.';
   }
 }
+
+function openWeekPopup(b){
+  const list = expenses.filter(x=>x.date>=b.start && x.date<=b.end && (x.type||'expense')===wkType)
+    .sort((a,c)=> c.date.localeCompare(a.date) || (c.createdAt-a.createdAt));
+  const isInc = wkType==='income';
+  $('wkPopupHead').innerHTML = `<h3 style="margin:0 0 4px;">${fmtShortDate(b.start)} – ${fmtShortDate(b.end)}</h3>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">${list.length} transaction${list.length===1?'':'s'} · <b style="color:var(--ink)">${money(b.total)}</b></div>`;
+  $('wkPopupList').innerHTML = list.length ? list.map(e=>`
+    <div style="display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px dashed var(--line);font-size:13.5px;">
+      <div style="min-width:0;"><div style="font-weight:600;">${escapeHtml(e.itemName)}</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);">${fmtShortDate(e.date)} · ${escapeHtml(e.category)} · ${escapeHtml(e.paymentMethod)}</div></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap;color:${isInc?'var(--green)':'var(--ink)'}">${isInc?'+':'−'}${money(e.amount)}</div>
+    </div>`).join('') : '<div class="empty-note">Nothing logged this week.</div>';
+  $('wkPopup').classList.add('open');
+}
+$('wkPopup').addEventListener('click', (ev)=>{ if(ev.target === $('wkPopup')) $('wkPopup').classList.remove('open'); });
 $('wkTypeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;
   document.querySelectorAll('#wkTypeTabs .tab').forEach(t=>t.classList.remove('active'));
@@ -1978,131 +1914,6 @@ $('wkCountChips').addEventListener('click', (ev)=>{
   document.querySelectorAll('#wkCountChips .chip').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active'); wkCount = Number(btn.dataset.n); renderWeeklyComparison();
 });
-
-/* ---------- Insight: pick any date range (calendar) ---------- */
-let rangeEnd = todayStr();
-let rangeStart = addDaysStr(rangeEnd, -6);
-let rangePicking = false;
-let calMonth = startOfMonth(new Date());
-let rangeShowAll = false;
-const RANGE_PAGE = 40;
-
-function rangeBounds(){
-  if(!rangeStart) return null;
-  let a = rangeStart, b = rangeEnd || rangeStart;
-  if(b < a) [a,b] = [b,a];
-  return [a,b];
-}
-function renderRangeCalendar(){
-  const y = calMonth.getFullYear(), m = calMonth.getMonth();
-  $('calTitle').textContent = new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const lead = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
-  const has = new Set(expenses.map(e=>e.date));
-  const bounds = rangeBounds(), today = todayStr();
-  let html = '';
-  for(let i=0;i<lead;i++) html += '<span></span>';
-  for(let d=1; d<=days; d++){
-    const ds = toStr(new Date(y,m,d));
-    const cls = ['cal-day'];
-    if(ds===today) cls.push('today');
-    if(has.has(ds)) cls.push('has');
-    if(bounds){
-      if(ds===bounds[0]) cls.push('start');
-      if(ds===bounds[1]) cls.push('end');
-      if(ds>bounds[0] && ds<bounds[1]) cls.push('in');
-    }
-    html += `<button type="button" class="${cls.join(' ')}" data-date="${ds}">${d}</button>`;
-  }
-  $('rangeCalGrid').innerHTML = html;
-  $('calHint').textContent = rangePicking ? 'Now tap the end date.' : 'Tap a start date, then an end date. A dot means something was logged that day.';
-}
-function renderRangeResults(){
-  const b = rangeBounds();
-  $('rangeFrom').value = rangeStart || '';
-  $('rangeTo').value = rangeEnd || '';
-  const listEl = $('rangeList'), moreBtn = $('rangeMore');
-  if(!b){
-    $('rangeLabel').textContent = 'Pick a start and end date';
-    $('rangeTiles').innerHTML = '';
-    listEl.innerHTML = '<div class="empty-note" style="padding:20px 4px;">Choose dates above to see your transactions.</div>';
-    moreBtn.style.display = 'none';
-    return;
-  }
-  const [from,to] = b;
-  const inRange = expenses.filter(e=>e.date>=from && e.date<=to);
-  const sum = (t)=> inRange.filter(e=>(e.type||'expense')===t).reduce((s,e)=>s+Number(e.amount),0);
-  const inc = sum('income'), exp = sum('expense'), net = inc - exp;
-  const nDays = Math.round((parseD(to)-parseD(from))/86400000) + 1;
-  $('rangeLabel').textContent = from===to ? fmtShortDate(from,true) : `${fmtShortDate(from,true)} – ${fmtShortDate(to,true)} · ${nDays} days`;
-  $('rangeTiles').innerHTML = `
-    <div class="rt"><div class="l">Income</div><div class="v" style="color:var(--green)">${money(inc)}</div></div>
-    <div class="rt"><div class="l">Expenses</div><div class="v" style="color:var(--coral)">${money(exp)}</div></div>
-    <div class="rt"><div class="l">Net</div><div class="v" style="color:${net<0?'var(--coral)':'var(--green)'}">${moneySigned(net)}</div></div>
-    <div class="rt"><div class="l">Avg spend / day</div><div class="v">${money(exp/nDays)}</div></div>`;
-
-  let list = inRange.filter(e=> !$('rangeType').value || (e.type||'expense')===$('rangeType').value);
-  const sort = $('rangeSort').value;
-  list.sort((a,b2)=>{
-    if(sort==='old') return a.date.localeCompare(b2.date) || (a.createdAt-b2.createdAt);
-    if(sort==='high') return Number(b2.amount)-Number(a.amount);
-    if(sort==='low') return Number(a.amount)-Number(b2.amount);
-    return b2.date.localeCompare(a.date) || (b2.createdAt-a.createdAt);
-  });
-  if(!list.length){
-    listEl.innerHTML = '<div class="empty-note" style="padding:20px 4px;">Nothing logged in this date range.</div>';
-    moreBtn.style.display = 'none';
-    return;
-  }
-  const visible = rangeShowAll ? list : list.slice(0, RANGE_PAGE);
-  listEl.innerHTML = visible.map(txRowHtml).join('');
-  if(list.length > RANGE_PAGE){
-    moreBtn.style.display = 'block';
-    moreBtn.textContent = rangeShowAll ? `Show only first ${RANGE_PAGE}` : `Show all ${list.length} transactions`;
-  } else moreBtn.style.display = 'none';
-}
-function renderRangeAll(){ renderRangeCalendar(); renderRangeResults(); }
-function applyRangePreset(p){
-  const now = new Date(), t = todayStr();
-  let a = t, b = t;
-  if(p==='last7') a = addDaysStr(t,-6);
-  else if(p==='last30') a = addDaysStr(t,-29);
-  else if(p==='thisMonth') a = toStr(startOfMonth(now));
-  else if(p==='lastMonth'){ a = toStr(new Date(now.getFullYear(), now.getMonth()-1, 1)); b = toStr(new Date(now.getFullYear(), now.getMonth(), 0)); }
-  else if(p==='thisYear') a = toStr(startOfYear(now));
-  rangeStart = a; rangeEnd = b; rangePicking = false; rangeShowAll = false;
-  calMonth = startOfMonth(parseD(a));
-  renderRangeAll();
-}
-$('rangePresets').addEventListener('click', (ev)=>{ const b = ev.target.closest('.chip'); if(b) applyRangePreset(b.dataset.p); });
-$('rangeCalGrid').addEventListener('click', (ev)=>{
-  const btn = ev.target.closest('.cal-day'); if(!btn) return;
-  const d = btn.dataset.date;
-  if(!rangePicking){ rangeStart = d; rangeEnd = d; rangePicking = true; }
-  else {
-    if(d < rangeStart){ rangeEnd = rangeStart; rangeStart = d; } else rangeEnd = d;
-    rangePicking = false;
-  }
-  rangeShowAll = false;
-  renderRangeAll();
-});
-$('calPrev').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderRangeCalendar(); });
-$('calNext').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderRangeCalendar(); });
-$('rangeCalToggle').addEventListener('click', ()=>{
-  const cal = $('rangeCal'); const hide = cal.style.display !== 'none';
-  cal.style.display = hide ? 'none' : 'block';
-  $('rangeCalToggle').textContent = hide ? '📅 Show calendar' : '🙈 Hide calendar';
-});
-function onRangeInput(){
-  const f = $('rangeFrom').value, t = $('rangeTo').value;
-  rangeStart = f || t || null; rangeEnd = t || f || null; rangePicking = false; rangeShowAll = false;
-  if(rangeStart) calMonth = startOfMonth(parseD(rangeStart));
-  renderRangeAll();
-}
-$('rangeFrom').addEventListener('change', onRangeInput);
-$('rangeTo').addEventListener('change', onRangeInput);
-$('rangeType').addEventListener('change', ()=>{ rangeShowAll = false; renderRangeResults(); });
-$('rangeSort').addEventListener('change', renderRangeResults);
-$('rangeMore').addEventListener('click', ()=>{ rangeShowAll = !rangeShowAll; renderRangeResults(); });
 
 /* ---------- Insight: spend/earn by payment method ---------- */
 const PAY_GROUPS = {
@@ -2264,7 +2075,6 @@ function renderAll(){
   renderWeeklyTrend();
   renderInsightCategoryChart();
   renderWeeklyComparison();
-  renderRangeAll();
   renderPaymentMethodChart();
   populateCategoryFilter();
   renderTransactions();
@@ -2520,7 +2330,7 @@ function showPage(page){
   // Chart.js sizes canvases from their visible container, so a chart drawn
   // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
   if(page === 'home'){ renderAccounts(); renderOverview(); }
-  if(page === 'insight'){ renderWeeklyTrend(); renderWeeklyComparison(); renderRangeAll(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
+  if(page === 'insight'){ renderWeeklyTrend(); renderWeeklyComparison(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
   if(page === 'transactions') renderTransactions();
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2580,6 +2390,10 @@ if('serviceWorker' in navigator){
   updateSyncLabel();
   if(syncCode) connectSync(syncCode);
 })();
+</script>
+<script>
+['gesturestart','gesturechange','gestureend'].forEach(function(t){ document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false}); });
+document.addEventListener('touchmove', function(e){ if(e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
 </script>
 </body>
 </html>
