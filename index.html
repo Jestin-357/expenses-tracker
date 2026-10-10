@@ -427,6 +427,13 @@ body{padding-bottom:78px;}
   .range-inputs .field input{font-size:13px;padding:9px 8px;}
 }
   .lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--line);background:var(--paper-card);color:var(--ink);font-size:24px;font-family:'Space Grotesk',sans-serif;cursor:pointer;}
+.drop>summary{list-style:none;cursor:pointer;display:inline-block;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;margin-bottom:4px;}
+.drop>summary::-webkit-details-marker,.more-tx>summary::-webkit-details-marker{display:none;}
+.more-tx>summary{list-style:none;cursor:pointer;text-align:center;padding:12px;font-weight:600;font-size:13px;color:var(--blue);}
+#paymentMethodList .pay-open-label{display:none;}
+#paymentMethodList .pay-method-row.open .pay-open-label{display:flex;}
+.heat{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:4px;}
+.heat i{display:block;aspect-ratio:1;min-height:18px;border-radius:5px;background:var(--line);}
 .swatch{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}
 .swatch.on{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--paper-card);}
 html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
@@ -455,14 +462,6 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
   <div id="remindBar"></div>
 
   <div class="section">
-    <div class="section-head"><h2 class="section-title">📅 This Month</h2></div>
-    <div class="section-body">
-      <div id="sumHead" style="font-size:14.5px;line-height:1.5;margin-bottom:12px;"></div>
-      <div class="pay-totals" id="sumStats" style="margin-bottom:0;"></div>
-    </div>
-  </div>
-
-  <div class="section">
     <div class="section-head">
       <h2 class="section-title">🏦 Cards &amp; Accounts</h2>
       <div style="display:flex;align-items:center;gap:10px;">
@@ -473,16 +472,6 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
       <div class="acct-scroll" id="acctCards"></div>
       <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;">Move money between them with <strong>+ → Transfer</strong> (it won't count as income or expense). Set starting balances in Settings.</div>
     </div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2 class="section-title">💰 Budgets</h2><button class="acct-edit-btn" id="budgetNew" type="button">+ Set</button></div>
-    <div class="section-body" id="budgetList"></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2 class="section-title">🎯 Savings Goals</h2><button class="acct-edit-btn" id="goalNew" type="button">+ New</button></div>
-    <div class="section-body" id="goalList"></div>
   </div>
 
   <div class="section">
@@ -519,6 +508,16 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
       </div>
     </div>
   </div>
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">💰 Budgets</h2><button class="acct-edit-btn" id="budgetNew" type="button">+ Set</button></div>
+    <div class="section-body" id="budgetList"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title">🎯 Savings Goals</h2><button class="acct-edit-btn" id="goalNew" type="button">+ New</button></div>
+    <div class="section-body" id="goalList"></div>
+  </div>
+
   </div>
   <!-- /page-home -->
 
@@ -600,6 +599,13 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
       <div class="pay-list" id="payList"></div>
     </div>
   </div>
+  <div class="section sec-var">
+    <div class="section-head"><h2 class="section-title">📈 Month Pace</h2></div>
+    <div class="section-body">
+      <div id="varNote" style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;"></div>
+      <div class="cwrap" id="varWrap" style="height:280px;"><canvas id="varChart"></canvas></div>
+    </div>
+  </div>
   </div>
   <!-- /page-insight -->
 
@@ -678,6 +684,7 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
     <div class="section-body">
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Rent, subscriptions, salary or EMIs — they add themselves on the due date.</div>
       <div id="recList" style="margin-bottom:12px;"></div>
+      <details class="drop" id="recDrop"><summary>＋ Add recurring ▾</summary><div style="margin-top:12px;">
       <div class="field"><label>Name</label><input id="recName" placeholder="e.g. Rent"/></div>
       <div class="field-row">
         <div class="field"><label>Amount</label><input id="recAmount" type="number" inputmode="decimal" min="0"/></div>
@@ -692,6 +699,7 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
         <div class="field"><label>Next date</label><input id="recNext" type="date"/></div>
       </div>
       <button class="btn-primary" id="recAdd" type="button" style="width:100%;">+ Add recurring</button>
+      </div></details>
     </div>
   </div>
 
@@ -707,12 +715,19 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
     <div class="section-head"><h2 class="section-title">🏷️ Categories</h2></div>
     <div class="section-body">
       <div class="tabs" id="ccTabs" style="margin-bottom:12px;"><button class="tab active" data-type="expense" type="button">Expenses</button><button class="tab" data-type="income" type="button">Income</button></div>
-      <div class="chip-row" id="ccList" style="margin-bottom:14px;"></div>
-      <div class="field"><label>New category</label><div style="display:flex;gap:8px;"><input id="ccIcon" maxlength="4" style="width:64px;text-align:center;" placeholder="🍕"/><input id="ccName" placeholder="Name, e.g. Coffee"/></div></div>
-      <div class="chip-row" id="ccEmoji" style="margin-bottom:10px;"></div>
-      <div class="chip-row" id="ccColors" style="margin-bottom:12px;"></div>
-      <button class="btn-primary" id="ccAdd" type="button" style="width:100%;">+ Add category</button>
-      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">Adding a name that already exists changes its icon and color.</div>
+      <div class="chip-row" id="ccList" style="margin-bottom:6px;"></div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:14px;">Tap a category to edit or delete it.</div>
+      <div class="field"><label id="ccFormLabel">New category</label>
+        <div style="display:flex;gap:8px;"><button type="button" class="chip" id="ccPickBtn" style="min-width:84px;"></button><input id="ccName" placeholder="Name, e.g. Coffee"/></div></div>
+      <div id="ccPanel" style="display:none;margin-bottom:12px;">
+        <div class="chip-row" id="ccEmoji" style="max-height:150px;overflow-y:auto;margin-bottom:10px;"></div>
+        <div class="chip-row" id="ccColors"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primary" id="ccAdd" type="button" style="flex:1;">+ Add category</button>
+        <button class="btn-ghost" id="ccDel" type="button" style="display:none;background:var(--paper);">🗑 Delete</button>
+      </div>
+      <div id="ccNote" style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;"></div>
     </div>
   </div>
 
@@ -923,9 +938,9 @@ let insightCatChartInstance = null;
 let insightCatType = 'expense';
 let insightPeriod = 'monthly';
 let paymentMethodChartInstance = null;
-let goals = [], customCats = { expense:[], income:[] }, budgets = {}, recurring = [];
-const snap = () => ({ items, expenses, paymentMethods, openingBalances, topups, currency, goals, customCats, budgets, recurring });
-function loadExtra(d){ goals = Array.isArray(d.goals) ? d.goals : []; customCats = { expense:[], income:[], ...(d.customCats||{}) }; budgets = d.budgets || {}; recurring = Array.isArray(d.recurring) ? d.recurring : []; }
+let goals = [], customCats = { expense:[], income:[] }, budgets = {}, recurring = [], hiddenCats = { expense:[], income:[] };
+const snap = () => ({ items, expenses, paymentMethods, openingBalances, topups, currency, goals, customCats, budgets, recurring, hiddenCats });
+function loadExtra(d){ goals = Array.isArray(d.goals) ? d.goals : []; customCats = { expense:[], income:[], ...(d.customCats||{}) }; budgets = d.budgets || {}; hiddenCats = { expense:[], income:[], ...(d.hiddenCats||{}) }; recurring = Array.isArray(d.recurring) ? d.recurring : []; }
 const customCat = (c,t) => (customCats[t]||[]).find(x=>x.name===c);
 
 function hashStr(s){ let h=0; for(let i=0;i<String(s).length;i++){ h = (h*31 + String(s).charCodeAt(i))|0; } return Math.abs(h); }
@@ -1189,7 +1204,7 @@ function allCategories(type){
     items.filter(i=>(i.type||'expense')===type).map(i=>i.category)
       .concat(expenses.filter(e=>(e.type||'expense')===type).map(e=>e.category))
   )].filter(Boolean);
-  return [...new Set([...(CATEGORIES_BY_TYPE[type]||[]), ...(customCats[type]||[]).map(c=>c.name), ...used])].sort();
+  return [...new Set([...(CATEGORIES_BY_TYPE[type]||[]).filter(c=>!(hiddenCats[type]||[]).includes(c)), ...(customCats[type]||[]).map(c=>c.name), ...used])].sort();
 }
 function allCategoriesAll(){
   return [...new Set([...allCategories('expense'), ...allCategories('income')])].sort();
@@ -1273,6 +1288,7 @@ function renderPaymentMethods(){
       <span class="pay-name">${acctIcon(p)} ${escapeHtml(p)}</span>
       <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
       <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:${(bal[p]||0)<0?'var(--coral)':'var(--green)'};">${moneySigned(bal[p]||0)}</span>
+      <button type="button" class="chip pay-more" style="padding:4px 10px;font-size:12px;">＋ Money ▾</button>
       <button class="icon-btn danger pay-remove-btn" title="${usageCount(p) ? 'In use — can\'t delete' : 'Delete'}" style="${usageCount(p) ? 'opacity:.35;' : ''}">✕</button>
       <div class="pay-open-label">
         <span>Add money</span>
@@ -1283,6 +1299,7 @@ function renderPaymentMethods(){
       </div>
     </div>`).join('');
 }
+$('paymentMethodList').addEventListener('click', (ev)=>{ const b = ev.target.closest('.pay-more'); if(b) b.closest('.pay-method-row').classList.toggle('open'); });
 async function addMoney(p, amount){
   if(!(amount > 0)){ showToast('Enter an amount greater than 0'); return false; }
   topups.push({ id: uid(), date: todayStr(), account: p, amount, createdAt: Date.now() });
@@ -1454,7 +1471,7 @@ function renderOverview(){
   const periodListEl = $('periodTxList');
   const noun = overviewType === 'income' ? 'income entries' : 'purchases';
   periodListEl.innerHTML = periodList.length
-    ? periodList.map(txRowHtml).join('')
+    ? periodList.slice(0,3).map(txRowHtml).join('') + (periodList.length > 3 ? `<details class="more-tx"><summary>Show ${periodList.length-3} more ▾</summary>${periodList.slice(3).map(txRowHtml).join('')}</details>` : '')
     : `<div class="empty-note" style="padding:20px 4px;">No ${noun} in this period${selectedCat ? ' for ' + escapeHtml(selectedCat) : ''}.</div>`;
 
   const canvas = $('catChart'); const emptyNote = $('chartEmpty');
@@ -2161,7 +2178,7 @@ $('payList').addEventListener('click', (ev)=>{
   ev.preventDefault();
   savePayOverride(b.dataset.method, b.dataset.setgroup);
   payOpen.add(b.dataset.method);
-  renderPaymentMethodChart();
+  renderPaymentMethodChart(); renderVariety();
 });
 $('payList').addEventListener('toggle', (ev)=>{
   const d = ev.target; if(!d.classList || !d.classList.contains('pay-item')) return;
@@ -2175,8 +2192,8 @@ function renderAll(){
   renderWeeklyTrend();
   renderInsightCategoryChart();
   renderWeeklyComparison();
-  renderPaymentMethodChart();
-  renderMonthSummary(); renderGoals(); renderCats(); fillPayFilter(); renderBudgets(); renderRecurring(); renderReminders();
+  renderPaymentMethodChart(); renderVariety();
+  renderGoals(); renderCats(); fillPayFilter(); renderBudgets(); renderRecurring(); renderReminders();
   populateCategoryFilter();
   renderTransactions();
   renderPaymentMethods();
@@ -2388,7 +2405,7 @@ $('insightPeriodTabs').addEventListener('click', (ev)=>{
   insightPeriod = btn.dataset.period;
   renderWeeklyTrend();
   renderInsightCategoryChart();
-  renderPaymentMethodChart();
+  renderPaymentMethodChart(); renderVariety();
 });
 
 $('insightCatTypeTabs').addEventListener('click', (ev)=>{
@@ -2441,7 +2458,7 @@ function showPage(page){
   // Chart.js sizes canvases from their visible container, so a chart drawn
   // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
   if(page === 'home'){ renderAccounts(); renderOverview(); }
-  if(page === 'insight'){ renderWeeklyTrend(); renderWeeklyComparison(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
+  if(page === 'insight'){ renderWeeklyTrend(); renderWeeklyComparison(); renderInsightCategoryChart(); renderPaymentMethodChart(); renderVariety(); }
   if(page === 'transactions') renderTransactions();
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2523,27 +2540,51 @@ function fillPayFilter(){
 $('filterPayment').addEventListener('change', renderTransactions);
 $('clearFilters').addEventListener('click', ()=>{ $('filterPayment').value=''; renderTransactions(); });
 
-/* Custom categories */
-let ccType = 'expense', ccColor = CATEGORY_COLORS[0];
-const CC_EMOJI = ['🍕','☕','🎮','✈️','🐶','📚','💊','🎁','🚗','🏋️','👶','💼'];
+/* Custom categories: tap to edit / delete */
+let ccType = 'expense', ccColor = CATEGORY_COLORS[0], ccIconV = '🏷️', ccEdit = null;
+const CC_EMOJI = '🍕 ☕ 🍔 🍜 🍺 🛒 🥦 🎮 🎬 🎵 📚 ✈️ 🚗 🚌 ⛽ 🏠 💡 📱 💻 👕 👟 💄 💊 🏥 🏋️ 🐶 🐱 👶 🎁 🎓 💼 💰 🏦 📈 🧾 🔧 🛠️ 🧹 🌴 ⚽ 🎂 🍷 🚕 🛍️ 💍 🧸 ☂️ ❤️'.split(' ');
+const catCount = (n,t)=>expenses.filter(e=>(e.type||'expense')===t && e.category===n).length;
+function ccReset(){ ccEdit = null; ccIconV = ccType==='income' ? '💵' : '🏷️'; ccColor = CATEGORY_COLORS[0]; $('ccName').value = ''; renderCats(); }
 function renderCats(){
-  $('ccList').innerHTML = allCategories(ccType).map(c=>{
-    const custom = customCat(c, ccType);
-    return `<span class="chip" style="display:inline-flex;gap:6px;align-items:center;">${categoryIcon(c,ccType)} ${escapeHtml(c)}${custom?` <b data-ccdel="${escapeHtml(c)}" style="cursor:pointer;padding:0 2px;">✕</b>`:''}</span>`;
-  }).join('');
+  $('ccList').innerHTML = allCategories(ccType).map(c=>`<button type="button" class="chip${c===ccEdit?' active':''}" data-cc="${escapeHtml(c)}">${categoryIcon(c,ccType)} ${escapeHtml(c)}</button>`).join('');
   $('ccEmoji').innerHTML = CC_EMOJI.map(e=>`<button type="button" class="chip" data-emoji="${e}">${e}</button>`).join('');
   $('ccColors').innerHTML = CATEGORY_COLORS.map(c=>`<button type="button" class="swatch${c===ccColor?' on':''}" data-color="${c}" style="background:${c};"></button>`).join('');
+  $('ccPickBtn').innerHTML = `<span style="font-size:18px;">${ccIconV}</span> <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${ccColor};"></span> ▾`;
+  $('ccFormLabel').textContent = ccEdit ? 'Edit category' : 'New category';
+  $('ccAdd').textContent = ccEdit ? 'Save changes' : '+ Add category';
+  const n = ccEdit ? catCount(ccEdit, ccType) : 0;
+  $('ccDel').style.display = ccEdit ? '' : 'none'; $('ccDel').disabled = n > 0; $('ccDel').style.opacity = n > 0 ? .5 : 1;
+  $('ccNote').textContent = ccEdit ? (n > 0 ? `Used by ${n} transaction${n===1?'':'s'} — it can be deleted once none use it.` : 'No transactions use this category, so you can delete it.') : '';
 }
-$('ccTabs').addEventListener('click', (ev)=>{ const b = ev.target.closest('.tab'); if(!b) return; document.querySelectorAll('#ccTabs .tab').forEach(t=>t.classList.toggle('active',t===b)); ccType = b.dataset.type; renderCats(); });
-$('ccEmoji').addEventListener('click', (ev)=>{ const b = ev.target.closest('[data-emoji]'); if(b) $('ccIcon').value = b.dataset.emoji; });
+$('ccTabs').addEventListener('click', (ev)=>{ const b = ev.target.closest('.tab'); if(!b) return; document.querySelectorAll('#ccTabs .tab').forEach(t=>t.classList.toggle('active',t===b)); ccType = b.dataset.type; ccReset(); });
+$('ccList').addEventListener('click', (ev)=>{ const b = ev.target.closest('[data-cc]'); if(!b) return; const c = b.dataset.cc; ccEdit = c; ccIconV = categoryIcon(c,ccType); ccColor = categoryColor(c,ccType); $('ccName').value = c; renderCats(); });
+$('ccPickBtn').addEventListener('click', ()=>{ const p = $('ccPanel'); p.style.display = p.style.display==='none' ? '' : 'none'; });
+$('ccEmoji').addEventListener('click', (ev)=>{ const b = ev.target.closest('[data-emoji]'); if(b){ ccIconV = b.dataset.emoji; renderCats(); } });
 $('ccColors').addEventListener('click', (ev)=>{ const b = ev.target.closest('[data-color]'); if(b){ ccColor = b.dataset.color; renderCats(); } });
-$('ccList').addEventListener('click', async (ev)=>{ const b = ev.target.closest('[data-ccdel]'); if(!b) return; customCats[ccType] = customCats[ccType].filter(c=>c.name!==b.dataset.ccdel); await saveData(); renderAll(); });
 $('ccAdd').addEventListener('click', async ()=>{
   const name = $('ccName').value.trim(); if(!name){ showToast('Give the category a name'); return; }
-  const icon = $('ccIcon').value.trim() || (ccType==='income' ? '💵' : '🏷️');
-  customCats[ccType] = (customCats[ccType]||[]).filter(c=>c.name!==name).concat({ name, icon, color: ccColor });
-  $('ccName').value = ''; $('ccIcon').value = '';
-  await saveData(); renderAll(); showToast('Category saved');
+  const t = ccType, old = ccEdit;
+  if(old && old !== name){
+    expenses.forEach(e=>{ if((e.type||'expense')===t && e.category===old) e.category = name; });
+    items.forEach(i=>{ if((i.type||'expense')===t && i.category===old) i.category = name; });
+    recurring.forEach(r=>{ if(r.type===t && r.category===old) r.category = name; });
+    if(t==='expense' && budgets[old]){ budgets[name] = budgets[old]; delete budgets[old]; }
+    customCats[t] = (customCats[t]||[]).filter(c=>c.name!==old);
+    if((CATEGORIES_BY_TYPE[t]||[]).includes(old) && !hiddenCats[t].includes(old)) hiddenCats[t].push(old);
+  }
+  customCats[t] = (customCats[t]||[]).filter(c=>c.name!==name).concat({ name, icon: ccIconV, color: ccColor });
+  hiddenCats[t] = hiddenCats[t].filter(c=>c!==name);
+  await saveData(); ccReset(); renderAll(); showToast('Category saved');
+});
+$('ccDel').addEventListener('click', async ()=>{
+  const t = ccType, c = ccEdit; if(!c || catCount(c,t) > 0) return;
+  const prev = JSON.stringify({ customCats, hiddenCats, items, budgets });
+  customCats[t] = (customCats[t]||[]).filter(x=>x.name!==c);
+  if((CATEGORIES_BY_TYPE[t]||[]).includes(c) && !hiddenCats[t].includes(c)) hiddenCats[t].push(c);
+  items = items.filter(i=>!((i.type||'expense')===t && i.category===c));
+  if(t==='expense') delete budgets[c];
+  await saveData(); ccReset(); renderAll();
+  showToast('Category deleted', { label:'Undo', fn: async ()=>{ const o = JSON.parse(prev); customCats = o.customCats; hiddenCats = o.hiddenCats; items = o.items; budgets = o.budgets; await saveData(); renderAll(); } });
 });
 
 /* Savings goals */
@@ -2589,26 +2630,6 @@ $('goalList').addEventListener('click', async (ev)=>{
   await saveData(); renderGoals();
   showToast('Goal deleted', { label:'Undo', fn: async ()=>{ goals.splice(Math.min(i,goals.length),0,rec); await saveData(); renderGoals(); } });
 });
-
-/* Monthly summary */
-function renderMonthSummary(){
-  const now = new Date(), s = toStr(startOfMonth(now)), t = todayStr();
-  const ps = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const pe = new Date(ps.getFullYear(), ps.getMonth(), Math.min(now.getDate(), new Date(now.getFullYear(), now.getMonth(), 0).getDate()));
-  const cur = expenses.filter(e=>e.date>=s && e.date<=t && (e.type||'expense')==='expense');
-  const spent = cur.reduce((a,e)=>a+Number(e.amount),0), prev = sumByType(toStr(ps), toStr(pe), 'expense');
-  let head;
-  if(!cur.length) head = 'Nothing spent yet this month — a fresh start ✨';
-  else if(!prev) head = `You've spent <b>${money(spent)}</b> so far this month.`;
-  else { const p = Math.round(Math.abs(spent-prev)/prev*100); head = `You've spent <b>${money(spent)}</b> — ${p}% ${spent<=prev?'less 👏':'more'} than the same point last month.`; }
-  $('sumHead').innerHTML = head;
-  if(!cur.length){ $('sumStats').innerHTML = ''; return; }
-  const byCat = {}; cur.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
-  const top = Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
-  const big = cur.reduce((a,e)=>Number(e.amount)>Number(a.amount)?e:a, cur[0]);
-  $('sumStats').innerHTML = `<div><span>Top category</span><b>${categoryIcon(top[0],'expense')} ${escapeHtml(top[0])}</b></div>
-    <div><span>Biggest</span><b>${money(big.amount)}</b></div><div><span>Per day</span><b>${money(spent/now.getDate())}</b></div>`;
-}
 
 /* Welcome tour */
 const TOUR = [
@@ -2686,7 +2707,7 @@ $('recAdd').addEventListener('click', async ()=>{
   if(!name || !(amount>0) || !next){ showToast('Add a name, amount and date'); return; }
   recurring.push({ id: uid(), name, amount, type:$('recType').value, category:$('recCat').value, paymentMethod:$('recPay').value, freq:$('recFreq').value, next, day: parseD(next).getDate() });
   $('recName').value = $('recAmount').value = ''; $('recNext').value = '';
-  await saveData(); await runRecurring(); renderAll(); showToast('Recurring added');
+  $('recDrop').open = false; await saveData(); await runRecurring(); renderAll(); showToast('Recurring added');
 });
 $('recList').addEventListener('click', async (ev)=>{
   const b = ev.target.closest('[data-rdel]'); if(!b) return; const i = recurring.findIndex(r=>r.id===b.dataset.rdel), [rec] = recurring.splice(i,1);
@@ -2747,6 +2768,31 @@ $('pdfBtn').addEventListener('click', ()=>{
   f.contentDocument.close(); setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(), 2000); }, 300);
 });
 setTimeout(runRecurring, 900);
+
+/* ---------- Month pace: this month vs last month ---------- */
+let varChartInst = null;
+function renderVariety(){
+  if(!$('varChart')) return;
+  if(varChartInst){ try{ varChartInst.destroy(); }catch(e){} varChartInst = null; }
+  const wrap = $('varWrap'), note = $('varNote');
+  const spend = expenses.filter(e=>(e.type||'expense')==='expense');
+  const dayMap = {}; spend.forEach(e=>{ dayMap[e.date] = (dayMap[e.date]||0) + Number(e.amount); });
+  const empty = (m)=>{ wrap.style.display = 'none'; note.textContent = m; };
+  if(!spend.length) return empty('Log a few expenses to see this 🌱');
+  if(typeof Chart === 'undefined') return empty('Chart unavailable right now.');
+  wrap.style.display = 'block'; note.textContent = 'Running total of what you spend this month vs. last month.';
+  try{
+    const now = new Date(), y = now.getFullYear(), m = now.getMonth(), days = new Date(y,m+1,0).getDate(), pd = new Date(y,m,0).getDate();
+    const cum = (yy,mm,upto)=>{ let c = 0; return Array.from({length:upto}, (_,i)=>{ c += dayMap[toStr(new Date(yy,mm,i+1))]||0; return c; }); };
+    varChartInst = new Chart($('varChart').getContext('2d'), { type:'line',
+      data:{ labels: Array.from({length:Math.max(days,pd)}, (_,i)=>i+1), datasets:[
+        { label:'This month', data:cum(y,m,now.getDate()), borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,.18)', fill:true, tension:.3, pointRadius:0, borderWidth:3 },
+        { label:'Last month', data:cum(y,m-1,pd), borderColor:'#F59E0B', borderDash:[6,5], tension:.3, pointRadius:0, borderWidth:2 } ] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{ y:{ beginAtZero:true, ticks:{ callback:(v)=>curSymbol()+v } }, x:{ grid:{ display:false } } },
+        plugins:{ legend:{ position:'bottom' }, tooltip:{ callbacks:{ title:(i)=>'Day '+i[0].label, label:(c)=>c.dataset.label+': '+money(c.parsed.y) } } } } });
+  }catch(e){ empty('This chart could not be drawn right now.'); }
+}
 
 /* ---------- Init ---------- */
 if('serviceWorker' in navigator){
