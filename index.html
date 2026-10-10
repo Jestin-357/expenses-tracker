@@ -347,6 +347,85 @@ body{padding-bottom:78px;}
 #themeTabs .tab.active[data-theme="dark"]{background:linear-gradient(135deg,#312E81,#7C3AED) !important;color:#fff !important;box-shadow:0 8px 18px rgba(99,102,241,0.42);border-color:rgba(255,255,255,0.35);}
 :root[data-theme="dark"] #themeTabs .tab[data-theme="light"]:not(.active){background:linear-gradient(135deg,#3A2F14,#4A3512);color:#FBBF24;}
 :root[data-theme="dark"] #themeTabs .tab[data-theme="dark"]:not(.active){background:linear-gradient(135deg,#1F2350,#2B2263);color:#B7B4F5;}
+
+/* ---------- Insight additions: weekly comparison, date range, payment detail ---------- */
+.sec-week{--sec-grad:linear-gradient(90deg,#7C3AED,#F43F5E);}
+.sec-range{--sec-grad:linear-gradient(90deg,#06B6D4,#10B981);}
+.cwrap{position:relative;width:100%;}
+.ins-controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.chip.active{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;border-color:transparent;}
+.ins-select{font-family:'IBM Plex Sans',sans-serif;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);}
+.wk-hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.wk-box{border-radius:14px;padding:12px 14px;background:var(--paper);border:1px solid var(--line);}
+.wk-box.this{background:linear-gradient(135deg,#6366F1,#9333EA);border-color:transparent;color:#fff;}
+.wk-box .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;opacity:.8;}
+.wk-box .val{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-top:4px;word-break:break-word;}
+.wk-box .sub{font-size:11.5px;opacity:.8;margin-top:3px;}
+.wk-msg{font-size:13.5px;line-height:1.6;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;color:var(--ink);}
+.wk-msg p{margin:0 0 6px;} .wk-msg p:last-child{margin:0;}
+.wk-msg .good{color:var(--green);font-weight:600;} .wk-msg .bad{color:var(--coral);font-weight:600;}
+.wk-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+.wk-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;}
+.wk-legend i.dash{width:16px;height:0;border-top:2px dashed #F59E0B;border-radius:0;vertical-align:middle;}
+.wk-list{margin-top:14px;border-top:2px dashed var(--line);}
+.wk-row{display:grid;grid-template-columns:minmax(0,1fr) auto 70px;gap:4px 10px;align-items:center;padding:11px 2px;border-bottom:1px dashed var(--line);font-size:13.5px;}
+.wk-row .nm b{display:block;font-weight:600;} .wk-row .nm span{font-size:11.5px;color:var(--ink-soft);}
+.wk-row .amt{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;}
+.wk-row .dl{font-size:12px;font-weight:600;text-align:right;color:var(--ink-soft);}
+.wk-row .dl.good{color:var(--green);} .wk-row .dl.bad{color:var(--coral);}
+.wk-row .bar{grid-column:1/-1;height:6px;border-radius:99px;background:var(--line);overflow:hidden;}
+.wk-row .bar i{display:block;height:100%;border-radius:99px;}
+.range-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cal{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--paper);}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cal-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;}
+.cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-dow span{text-align:center;font-size:10.5px;font-weight:600;color:var(--ink-soft);padding:4px 0;text-transform:uppercase;letter-spacing:.04em;}
+.cal-grid{row-gap:2px;}
+.cal-day{position:relative;border:none;background:transparent;color:var(--ink);font-size:13px;font-weight:500;height:38px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;border-radius:0;}
+.cal-day.today{font-weight:700;color:#7C3AED;}
+.cal-day.in{background:rgba(124,58,237,.16);}
+.cal-day.start,.cal-day.end{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff;font-weight:700;}
+.cal-day.start{border-radius:999px 0 0 999px;} .cal-day.end{border-radius:0 999px 999px 0;}
+.cal-day.start.end{border-radius:999px;}
+.cal-day.has::after{content:"";position:absolute;left:50%;bottom:4px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#F43F5E;}
+.cal-day.start.has::after,.cal-day.end.has::after{background:#fff;}
+.cal-hint{font-size:11.5px;color:var(--ink-soft);margin-top:8px;text-align:center;}
+.range-label{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin:14px 0 10px;}
+.range-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.rt{border-radius:12px;padding:10px 10px;background:var(--paper);border:1px solid var(--line);min-width:0;}
+.rt .l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--ink-soft);}
+.rt .v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-top:4px;word-break:break-word;}
+.pay-totals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.pay-totals div{border-radius:12px;padding:10px;background:var(--paper);border:1px solid var(--line);min-width:0;}
+.pay-totals span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--ink-soft);}
+.pay-totals b{display:block;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-top:4px;word-break:break-word;}
+.pay-totals b.neg{color:var(--coral);} .pay-totals b.pos{color:var(--green);}
+.pay-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.pay-item{border:1px solid var(--line);border-radius:12px;background:var(--paper);overflow:hidden;}
+.pay-item>summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;}
+.pay-item>summary::-webkit-details-marker{display:none;}
+.pay-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(99,102,241,.15);}
+.pay-nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pay-badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(99,102,241,.15);color:var(--blue);margin-top:3px;}
+.pay-meta{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+.pay-amts{text-align:right;font-family:'IBM Plex Mono',monospace;}
+.pay-amts .sp{font-weight:600;font-size:14px;color:var(--coral);}
+.pay-amts .rc{font-size:12px;color:var(--green);margin-top:2px;}
+.pay-share{grid-column:1/-1;height:6px;border-radius:99px;background:var(--line);overflow:hidden;}
+.pay-share i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#F43F5E,#FB7185);}
+.pay-detail{padding:2px 12px 14px;border-top:1px dashed var(--line);}
+.pay-detail h4{margin:12px 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);}
+.pay-tx{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;}
+.pay-tx span:first-child{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pay-tx .a{font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap;}
+@media(max-width:720px){
+  .range-tiles{grid-template-columns:repeat(2,1fr);}
+  .wk-box .val{font-size:16px;}
+  .range-inputs .field input{font-size:13px;padding:9px 8px;}
+}
 </style>
 </head>
 <body>
@@ -434,6 +513,84 @@ body{padding-bottom:78px;}
     <div class="ins-card net" id="insNetCard"><span class="ins-ico">✨</span><div class="ins-lbl">Net</div><div class="ins-val" id="insNet">—</div><div class="ins-sub" id="insSub"></div></div>
   </div>
 
+  <div class="section sec-week">
+    <div class="section-head"><h2 class="section-title">🗓️ Weekly Comparison</h2></div>
+    <div class="section-body">
+      <div class="ins-controls">
+        <div class="tabs" id="wkTypeTabs" style="margin-bottom:0;">
+          <button class="tab active" data-type="expense" type="button">Spending</button>
+          <button class="tab" data-type="income" type="button">Income</button>
+        </div>
+        <div class="chip-row" id="wkCountChips">
+          <button class="chip active" data-n="4" type="button">4 weeks</button>
+          <button class="chip" data-n="8" type="button">8 weeks</button>
+          <button class="chip" data-n="12" type="button">12 weeks</button>
+        </div>
+      </div>
+      <div class="wk-hero">
+        <div class="wk-box this"><div class="lbl">This week so far</div><div class="val" id="wkThisVal">—</div><div class="sub" id="wkThisSub"></div></div>
+        <div class="wk-box"><div class="lbl">Last week</div><div class="val" id="wkLastVal">—</div><div class="sub" id="wkLastSub"></div></div>
+      </div>
+      <div class="wk-msg" id="wkMessage"></div>
+      <div class="wk-legend">
+        <span><i style="background:#7C3AED"></i>This week</span>
+        <span><i id="wkLegendPrev" style="background:#F43F5E"></i>Earlier weeks</span>
+        <span><i class="dash"></i>Average</span>
+      </div>
+      <div class="cwrap" id="wkChartWrap" style="height:260px;"><canvas id="wkChart"></canvas></div>
+      <div class="empty-note" id="wkEmpty" style="display:none;"></div>
+      <div class="wk-list" id="wkList"></div>
+    </div>
+  </div>
+
+  <div class="section sec-range">
+    <div class="section-head"><h2 class="section-title">📅 Pick Dates</h2></div>
+    <div class="section-body">
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Choose any start and end date to see exactly what you earned and spent in between.</div>
+      <div class="chip-row" id="rangePresets" style="margin-bottom:12px;">
+        <button class="chip" data-p="today" type="button">Today</button>
+        <button class="chip" data-p="last7" type="button">Last 7 days</button>
+        <button class="chip" data-p="last30" type="button">Last 30 days</button>
+        <button class="chip" data-p="thisMonth" type="button">This month</button>
+        <button class="chip" data-p="lastMonth" type="button">Last month</button>
+        <button class="chip" data-p="thisYear" type="button">This year</button>
+      </div>
+      <div class="range-inputs">
+        <div class="field" style="margin:0;"><label>From</label><input type="date" id="rangeFrom"/></div>
+        <div class="field" style="margin:0;"><label>To</label><input type="date" id="rangeTo"/></div>
+      </div>
+      <button class="chip" id="rangeCalToggle" type="button" style="margin:12px 0 8px;">🙈 Hide calendar</button>
+      <div class="cal" id="rangeCal">
+        <div class="cal-head">
+          <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+          <div class="cal-title" id="calTitle"></div>
+          <button class="icon-btn" id="calNext" type="button" aria-label="Next month">›</button>
+        </div>
+        <div class="cal-dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div class="cal-grid" id="rangeCalGrid"></div>
+        <div class="cal-hint" id="calHint">Tap a start date, then an end date. A dot means something was logged that day.</div>
+      </div>
+      <div class="range-label" id="rangeLabel"></div>
+      <div class="range-tiles" id="rangeTiles"></div>
+      <div class="filters" style="margin-top:14px;">
+        <select id="rangeType">
+          <option value="">All types</option>
+          <option value="expense">Expenses</option>
+          <option value="income">Income</option>
+          <option value="transfer">Transfers</option>
+        </select>
+        <select id="rangeSort">
+          <option value="new">Newest first</option>
+          <option value="old">Oldest first</option>
+          <option value="high">Highest amount</option>
+          <option value="low">Lowest amount</option>
+        </select>
+      </div>
+      <div class="tape" id="rangeList"></div>
+      <button class="clear-btn" id="rangeMore" type="button" style="margin-top:12px;display:none;width:100%;"></button>
+    </div>
+  </div>
+
   <div class="section sec-trend">
     <div class="section-head"><h2 class="section-title">📈 Income vs Expenses</h2></div>
     <div class="section-body">
@@ -468,14 +625,27 @@ body{padding-bottom:78px;}
   <div class="section sec-pay">
     <div class="section-head"><h2 class="section-title">💳 By Payment Method</h2></div>
     <div class="section-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <div style="font-size:13px;color:var(--ink-soft);" id="paymentMethodPeriodLabel">Which card, cash, or account moves the most — this month</div>
         <div style="display:flex;gap:14px;font-size:12.5px;color:var(--ink-soft);">
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10B981;margin-right:5px;"></span>Income</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F43F5E;margin-right:5px;"></span>Expenses</span>
         </div>
       </div>
-      <div class="chart-box" style="height:240px;"><canvas id="paymentMethodChart"></canvas><div class="empty-note" id="paymentMethodEmpty" style="display:none;"></div></div>
+      <div class="ins-controls">
+        <div class="chip-row" id="payGroupChips"></div>
+        <select class="ins-select" id="paySort" aria-label="Sort payment methods">
+          <option value="spent">Sort: Most spent</option>
+          <option value="received">Sort: Most received</option>
+          <option value="total">Sort: Total activity</option>
+          <option value="count">Sort: Most transactions</option>
+          <option value="name">Sort: Name A–Z</option>
+        </select>
+      </div>
+      <div class="pay-totals" id="payTotals"></div>
+      <div class="cwrap" id="payChartWrap" style="height:240px;"><canvas id="paymentMethodChart"></canvas></div>
+      <div class="empty-note" id="paymentMethodEmpty" style="display:none;"></div>
+      <div class="pay-list" id="payList"></div>
     </div>
   </div>
   </div>
@@ -1650,51 +1820,442 @@ function renderInsightCategoryChart(){
   }
 }
 
+/* ---------- Shared helpers for the new Insight sections ---------- */
+const valueLabelPlugin = {
+  id:'valueLabels',
+  afterDatasetsDraw(chart, args, opts){
+    if(!opts || !opts.fmt) return;
+    const ctx = chart.ctx; ctx.save();
+    ctx.font = "600 11px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = cssVar('--ink');
+    const horizontal = chart.options.indexAxis === 'y';
+    chart.data.datasets.forEach((ds, i)=>{
+      if(ds.type === 'line') return;
+      const meta = chart.getDatasetMeta(i); if(meta.hidden) return;
+      meta.data.forEach((el, idx)=>{
+        const v = Number(ds.data[idx]); if(!v) return;
+        const text = opts.fmt(v);
+        if(horizontal){ ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(text, el.x + 6, el.y); }
+        else { ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(text, el.x, el.y - 4); }
+      });
+    });
+    ctx.restore();
+  }
+};
+function moneyWhole(n){ const c = curInfo(); return c.symbol + Math.round(Number(n||0)).toLocaleString(c.locale); }
+function moneyCompact(n){ const c = curInfo(); return c.symbol + new Intl.NumberFormat(c.locale,{notation:'compact',maximumFractionDigits:1}).format(Number(n||0)); }
+function parseD(s){ const [y,m,d] = String(s).split('-').map(Number); return new Date(y,(m||1)-1,d||1); }
+function addDaysStr(s, n){ const d = parseD(s); d.setDate(d.getDate()+n); return toStr(d); }
+function fmtShortDate(s, withYear){ return parseD(s).toLocaleDateString('en-GB', withYear ? {day:'numeric',month:'short',year:'numeric'} : {day:'numeric',month:'short'}); }
+function pctChange(cur, prev){ return prev ? Math.round((cur-prev)/prev*100) : null; }
+
+/* ---------- Insight: weekly comparison (this week vs. previous weeks) ---------- */
+let wkType = 'expense';
+let wkCount = 4;
+let weeklyCmpChartInstance = null;
+
+function weeklyBuckets(n){
+  // oldest → newest, n+1 items (the extra oldest one is only used for the first row's change %)
+  const out = [];
+  for(let o=n; o>=0; o--){
+    const [s,e] = weekRangeByOffset(o);
+    const list = expenses.filter(x=>x.date>=s && x.date<=e && (x.type||'expense')===wkType);
+    out.push({ offset:o, start:s, end:e, total:list.reduce((a,x)=>a+Number(x.amount),0), count:list.length });
+  }
+  return out;
+}
+function wkDeltaClass(diff){
+  if(!diff) return '';
+  const up = diff > 0;
+  const good = wkType==='expense' ? !up : up;
+  return good ? 'good' : 'bad';
+}
+function renderWeeklyComparison(){
+  if(!$('wkChart')) return;
+  const n = wkCount;
+  const all = weeklyBuckets(n);
+  const shown = all.slice(1);
+  const thisW = shown[shown.length-1], lastW = shown[shown.length-2];
+  const completed = shown.filter(b=>b.offset>0);
+  const avg = completed.length ? completed.reduce((s,b)=>s+b.total,0)/completed.length : 0;
+  const word = wkType==='expense' ? 'spent' : 'earned';
+  const noun = wkType==='expense' ? 'spending' : 'income';
+
+  $('wkThisVal').textContent = money(thisW.total);
+  $('wkThisSub').textContent = `${fmtShortDate(thisW.start)} – ${fmtShortDate(thisW.end)} · ${thisW.count} txn${thisW.count===1?'':'s'}`;
+  $('wkLastVal').textContent = money(lastW.total);
+  $('wkLastSub').textContent = `${fmtShortDate(lastW.start)} – ${fmtShortDate(lastW.end)} · ${lastW.count} txn${lastW.count===1?'':'s'}`;
+  $('wkLegendPrev').style.background = wkType==='expense' ? '#F43F5E' : '#10B981';
+
+  // Chatty summary
+  const dow = new Date().getDay();
+  const samePoint = sumByType(lastW.start, addDaysStr(lastW.start, dow), wkType);
+  const msgs = [];
+  if(!thisW.total && !lastW.total){
+    msgs.push(`Nothing logged yet for this week or last week.`);
+  } else {
+    const diff = thisW.total - lastW.total;
+    const pct = pctChange(thisW.total, lastW.total);
+    const cls = wkDeltaClass(diff);
+    msgs.push(`So far this week you've ${word} <b>${money(thisW.total)}</b> — <span class="${cls}">${money(Math.abs(diff))} ${diff>=0?'more':'less'}${pct!==null?` (${Math.abs(pct)}%)`:''}</span> than all of last week.`);
+    const paceDiff = thisW.total - samePoint;
+    msgs.push(`By this same day last week you had ${word} ${money(samePoint)}, so you're <span class="${wkDeltaClass(paceDiff)}">${money(Math.abs(paceDiff))} ${paceDiff>=0?'ahead of':'behind'}</span> that pace.`);
+  }
+  if(completed.length && avg>0){
+    const best = completed.reduce((a,b)=> (wkType==='expense' ? (b.total<a.total?b:a) : (b.total>a.total?b:a)));
+    msgs.push(`Your average over the last ${completed.length} full week${completed.length===1?'':'s'} is <b>${money(avg)}</b>. ${wkType==='expense'?'Lightest':'Best'} week: ${fmtShortDate(best.start)} – ${fmtShortDate(best.end)} (${money(best.total)}).`);
+  }
+  $('wkMessage').innerHTML = msgs.map(m=>`<p>${m}</p>`).join('');
+
+  // Week-by-week list (newest first)
+  const max = Math.max(1, ...shown.map(b=>b.total));
+  const base = wkType==='expense' ? 'linear-gradient(90deg,#F43F5E,#FB7185)' : 'linear-gradient(90deg,#10B981,#34D399)';
+  $('wkList').innerHTML = [...shown].reverse().map(b=>{
+    const idx = all.indexOf(b), prev = all[idx-1];
+    const diff = b.total - prev.total;
+    const pct = pctChange(b.total, prev.total);
+    let dl = '—', cls = '';
+    if(prev.total === 0 && b.total > 0){ dl = 'new'; }
+    else if(prev.total !== 0){ dl = (diff>0?'▲ ':diff<0?'▼ ':'') + Math.abs(pct) + '%'; cls = wkDeltaClass(diff); }
+    const tag = b.offset===0 ? 'This week (so far)' : b.offset===1 ? 'Last week' : `${b.offset} weeks ago`;
+    return `
+    <div class="wk-row">
+      <div class="nm"><b>${tag}</b><span>${fmtShortDate(b.start)} – ${fmtShortDate(b.end)} · ${b.count} txn${b.count===1?'':'s'}</span></div>
+      <div class="amt">${money(b.total)}</div>
+      <div class="dl ${cls}" title="Change vs. the week before">${dl}</div>
+      <div class="bar"><i style="width:${Math.max(b.total?3:0, b.total/max*100)}%;background:${b.offset===0?'linear-gradient(90deg,#6366F1,#9333EA)':base};"></i></div>
+    </div>`;
+  }).join('');
+
+  // Chart
+  const canvas = $('wkChart'), wrap = $('wkChartWrap'), note = $('wkEmpty');
+  if(weeklyCmpChartInstance){ try{ weeklyCmpChartInstance.destroy(); }catch(e){} weeklyCmpChartInstance = null; }
+  const hasAny = shown.some(b=>b.total>0);
+  if(typeof Chart === 'undefined' || !hasAny){
+    wrap.style.display = 'none'; note.style.display = 'block';
+    note.textContent = typeof Chart === 'undefined' ? 'Chart unavailable right now — the weekly list below is still accurate.' : `No ${noun} logged in the last ${n} weeks.`;
+    return;
+  }
+  wrap.style.display = 'block'; note.style.display = 'none';
+  try{
+    const baseColor = wkType==='expense' ? '#F43F5E' : '#10B981';
+    const datasets = [{
+      type:'bar', label: wkType==='expense' ? 'Spent' : 'Earned', data: shown.map(b=>b.total),
+      backgroundColor: shown.map(b=>b.offset===0 ? '#7C3AED' : baseColor), borderRadius:8, maxBarThickness:46,
+    }];
+    if(completed.length && avg>0){
+      datasets.push({ type:'line', label:'Average', data: shown.map(()=>avg), borderColor:'#F59E0B', borderDash:[6,5], borderWidth:2, pointRadius:0, fill:false });
+    }
+    weeklyCmpChartInstance = new Chart(canvas.getContext('2d'), {
+      data:{ labels: shown.map(b=>b.offset===0 ? 'This wk' : fmtShortDate(b.start)), datasets },
+      plugins:[valueLabelPlugin],
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        layout:{ padding:{ top:22 } },
+        plugins:{
+          legend:{ display:false },
+          valueLabels:{ fmt: n>6 ? moneyCompact : moneyWhole },
+          tooltip:{ callbacks:{
+            title:(items)=>{ const b = shown[items[0].dataIndex]; return `${fmtShortDate(b.start)} – ${fmtShortDate(b.end)}`; },
+            label:(c)=> `${c.dataset.label}: ${money(c.parsed.y)}`,
+          } },
+        },
+        scales:{ y:{ beginAtZero:true, grace:'8%', ticks:{ callback:(v)=>curSymbol()+v } }, x:{ grid:{ display:false } } },
+      },
+    });
+  }catch(e){
+    wrap.style.display = 'none'; note.style.display = 'block';
+    note.textContent = 'Chart unavailable right now — the weekly list below is still accurate.';
+  }
+}
+$('wkTypeTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('#wkTypeTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active'); wkType = btn.dataset.type; renderWeeklyComparison();
+});
+$('wkCountChips').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.chip'); if(!btn) return;
+  document.querySelectorAll('#wkCountChips .chip').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active'); wkCount = Number(btn.dataset.n); renderWeeklyComparison();
+});
+
+/* ---------- Insight: pick any date range (calendar) ---------- */
+let rangeEnd = todayStr();
+let rangeStart = addDaysStr(rangeEnd, -6);
+let rangePicking = false;
+let calMonth = startOfMonth(new Date());
+let rangeShowAll = false;
+const RANGE_PAGE = 40;
+
+function rangeBounds(){
+  if(!rangeStart) return null;
+  let a = rangeStart, b = rangeEnd || rangeStart;
+  if(b < a) [a,b] = [b,a];
+  return [a,b];
+}
+function renderRangeCalendar(){
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  $('calTitle').textContent = new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const lead = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
+  const has = new Set(expenses.map(e=>e.date));
+  const bounds = rangeBounds(), today = todayStr();
+  let html = '';
+  for(let i=0;i<lead;i++) html += '<span></span>';
+  for(let d=1; d<=days; d++){
+    const ds = toStr(new Date(y,m,d));
+    const cls = ['cal-day'];
+    if(ds===today) cls.push('today');
+    if(has.has(ds)) cls.push('has');
+    if(bounds){
+      if(ds===bounds[0]) cls.push('start');
+      if(ds===bounds[1]) cls.push('end');
+      if(ds>bounds[0] && ds<bounds[1]) cls.push('in');
+    }
+    html += `<button type="button" class="${cls.join(' ')}" data-date="${ds}">${d}</button>`;
+  }
+  $('rangeCalGrid').innerHTML = html;
+  $('calHint').textContent = rangePicking ? 'Now tap the end date.' : 'Tap a start date, then an end date. A dot means something was logged that day.';
+}
+function renderRangeResults(){
+  const b = rangeBounds();
+  $('rangeFrom').value = rangeStart || '';
+  $('rangeTo').value = rangeEnd || '';
+  const listEl = $('rangeList'), moreBtn = $('rangeMore');
+  if(!b){
+    $('rangeLabel').textContent = 'Pick a start and end date';
+    $('rangeTiles').innerHTML = '';
+    listEl.innerHTML = '<div class="empty-note" style="padding:20px 4px;">Choose dates above to see your transactions.</div>';
+    moreBtn.style.display = 'none';
+    return;
+  }
+  const [from,to] = b;
+  const inRange = expenses.filter(e=>e.date>=from && e.date<=to);
+  const sum = (t)=> inRange.filter(e=>(e.type||'expense')===t).reduce((s,e)=>s+Number(e.amount),0);
+  const inc = sum('income'), exp = sum('expense'), net = inc - exp;
+  const nDays = Math.round((parseD(to)-parseD(from))/86400000) + 1;
+  $('rangeLabel').textContent = from===to ? fmtShortDate(from,true) : `${fmtShortDate(from,true)} – ${fmtShortDate(to,true)} · ${nDays} days`;
+  $('rangeTiles').innerHTML = `
+    <div class="rt"><div class="l">Income</div><div class="v" style="color:var(--green)">${money(inc)}</div></div>
+    <div class="rt"><div class="l">Expenses</div><div class="v" style="color:var(--coral)">${money(exp)}</div></div>
+    <div class="rt"><div class="l">Net</div><div class="v" style="color:${net<0?'var(--coral)':'var(--green)'}">${moneySigned(net)}</div></div>
+    <div class="rt"><div class="l">Avg spend / day</div><div class="v">${money(exp/nDays)}</div></div>`;
+
+  let list = inRange.filter(e=> !$('rangeType').value || (e.type||'expense')===$('rangeType').value);
+  const sort = $('rangeSort').value;
+  list.sort((a,b2)=>{
+    if(sort==='old') return a.date.localeCompare(b2.date) || (a.createdAt-b2.createdAt);
+    if(sort==='high') return Number(b2.amount)-Number(a.amount);
+    if(sort==='low') return Number(a.amount)-Number(b2.amount);
+    return b2.date.localeCompare(a.date) || (b2.createdAt-a.createdAt);
+  });
+  if(!list.length){
+    listEl.innerHTML = '<div class="empty-note" style="padding:20px 4px;">Nothing logged in this date range.</div>';
+    moreBtn.style.display = 'none';
+    return;
+  }
+  const visible = rangeShowAll ? list : list.slice(0, RANGE_PAGE);
+  listEl.innerHTML = visible.map(txRowHtml).join('');
+  if(list.length > RANGE_PAGE){
+    moreBtn.style.display = 'block';
+    moreBtn.textContent = rangeShowAll ? `Show only first ${RANGE_PAGE}` : `Show all ${list.length} transactions`;
+  } else moreBtn.style.display = 'none';
+}
+function renderRangeAll(){ renderRangeCalendar(); renderRangeResults(); }
+function applyRangePreset(p){
+  const now = new Date(), t = todayStr();
+  let a = t, b = t;
+  if(p==='last7') a = addDaysStr(t,-6);
+  else if(p==='last30') a = addDaysStr(t,-29);
+  else if(p==='thisMonth') a = toStr(startOfMonth(now));
+  else if(p==='lastMonth'){ a = toStr(new Date(now.getFullYear(), now.getMonth()-1, 1)); b = toStr(new Date(now.getFullYear(), now.getMonth(), 0)); }
+  else if(p==='thisYear') a = toStr(startOfYear(now));
+  rangeStart = a; rangeEnd = b; rangePicking = false; rangeShowAll = false;
+  calMonth = startOfMonth(parseD(a));
+  renderRangeAll();
+}
+$('rangePresets').addEventListener('click', (ev)=>{ const b = ev.target.closest('.chip'); if(b) applyRangePreset(b.dataset.p); });
+$('rangeCalGrid').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.cal-day'); if(!btn) return;
+  const d = btn.dataset.date;
+  if(!rangePicking){ rangeStart = d; rangeEnd = d; rangePicking = true; }
+  else {
+    if(d < rangeStart){ rangeEnd = rangeStart; rangeStart = d; } else rangeEnd = d;
+    rangePicking = false;
+  }
+  rangeShowAll = false;
+  renderRangeAll();
+});
+$('calPrev').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderRangeCalendar(); });
+$('calNext').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderRangeCalendar(); });
+$('rangeCalToggle').addEventListener('click', ()=>{
+  const cal = $('rangeCal'); const hide = cal.style.display !== 'none';
+  cal.style.display = hide ? 'none' : 'block';
+  $('rangeCalToggle').textContent = hide ? '📅 Show calendar' : '🙈 Hide calendar';
+});
+function onRangeInput(){
+  const f = $('rangeFrom').value, t = $('rangeTo').value;
+  rangeStart = f || t || null; rangeEnd = t || f || null; rangePicking = false; rangeShowAll = false;
+  if(rangeStart) calMonth = startOfMonth(parseD(rangeStart));
+  renderRangeAll();
+}
+$('rangeFrom').addEventListener('change', onRangeInput);
+$('rangeTo').addEventListener('change', onRangeInput);
+$('rangeType').addEventListener('change', ()=>{ rangeShowAll = false; renderRangeResults(); });
+$('rangeSort').addEventListener('change', renderRangeResults);
+$('rangeMore').addEventListener('click', ()=>{ rangeShowAll = !rangeShowAll; renderRangeResults(); });
+
 /* ---------- Insight: spend/earn by payment method ---------- */
+const PAY_GROUPS = {
+  bank:   { label:'Bank',   plural:'Banks',   icon:'🏦' },
+  card:   { label:'Card',   plural:'Cards',   icon:'💳' },
+  wallet: { label:'Wallet', plural:'Wallets', icon:'📱' },
+  cash:   { label:'Cash',   plural:'Cash',    icon:'💵' },
+};
+let payGroupFilter = 'all';
+let paySort = 'spent';
+const payOpen = new Set();
+function loadPayOverrides(){ try{ return JSON.parse(localStorage.getItem('ledger-pay-groups') || '{}') || {}; }catch(e){ return {}; } }
+function savePayOverride(name, group){ try{ const o = loadPayOverrides(); o[name] = group; localStorage.setItem('ledger-pay-groups', JSON.stringify(o)); }catch(e){} }
+function guessPayGroup(name){
+  const n = String(name).toLowerCase();
+  if(/cash/.test(n)) return 'cash';
+  if(/card|visa|master|amex|rupay|credit|debit/.test(n)) return 'card';
+  if(/bank|saving|account|checking|current|transfer|\bjp\b/.test(n)) return 'bank';
+  if(/upi|pay|wallet|gpay|paytm|phonepe|suica|pasmo/.test(n)) return 'wallet';
+  return 'card';
+}
+function payGroupOf(name){
+  const o = loadPayOverrides()[name];
+  return PAY_GROUPS[o] ? o : guessPayGroup(name);
+}
+function payDetailHtml(r){
+  const spend = r.mine.filter(e=>(e.type||'expense')==='expense');
+  const byCat = {};
+  spend.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
+  const cats = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const latest = r.mine.filter(e=>['expense','income'].includes(e.type||'expense'))
+    .sort((a,b)=> b.date.localeCompare(a.date) || (b.createdAt-a.createdAt)).slice(0,5);
+  const catHtml = cats.length ? cats.map(([cat,amt])=>{
+    const color = categoryColor(cat,'expense'), pct = r.expense ? Math.round(amt/r.expense*100) : 0;
+    return `<div class="cat-row"><span class="cat-icon-circle" style="background:${color}26;">${categoryIcon(cat,'expense')}</span><span class="name">${escapeHtml(cat)}</span><div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${Math.max(6,pct)}%;background:${color};"></div></div><span class="amt">${money(amt)} <span style="font-size:11px;">(${pct}%)</span></span></div>`;
+  }).join('') : '<div class="empty-note">No spending from this one in this period.</div>';
+  const txHtml = latest.map(e=>{
+    const inc = (e.type||'expense')==='income';
+    return `<div class="pay-tx"><span>${fmtShortDate(e.date)} · ${escapeHtml(e.itemName)}</span><span class="a" style="color:${inc?'var(--green)':'var(--ink)'}">${inc?'+':'−'}${money(e.amount)}</span></div>`;
+  }).join('');
+  const chips = Object.entries(PAY_GROUPS).map(([k,g])=>`<button type="button" class="chip ${r.group===k?'active':''}" data-setgroup="${k}" data-method="${escapeHtml(r.method)}">${g.icon} ${g.label}</button>`).join('');
+  return `
+    <h4>Where it went</h4><div class="cat-rows">${catHtml}</div>
+    <h4>Latest transactions</h4>${txHtml || '<div class="empty-note">None in this period.</div>'}
+    <h4>This account is a…</h4><div class="chip-row">${chips}</div>`;
+}
 function renderPaymentMethodChart(){
   $('paymentMethodPeriodLabel').textContent = 'Which card, cash, or account moves the most — ' + insightPeriodLabel(insightPeriod).toLowerCase();
   const [pf, pt] = periodRange(insightPeriod);
   const inRange = expenses.filter(e=>e.date>=pf && e.date<=pt);
-  const methods = [...new Set([...paymentMethods, ...inRange.map(e=>e.paymentMethod)])];
-  const data = methods.map(m=>{
-    const income = inRange.filter(e=>e.paymentMethod===m && (e.type||'expense')==='income').reduce((s,e)=>s+Number(e.amount),0);
-    const expense = inRange.filter(e=>e.paymentMethod===m && (e.type||'expense')==='expense').reduce((s,e)=>s+Number(e.amount),0);
-    return { method:m, income, expense };
-  }).filter(d=>d.income>0 || d.expense>0)
-    .sort((a,b)=> (b.income+b.expense) - (a.income+a.expense));
+  const methods = [...new Set([...paymentMethods, ...inRange.map(e=>e.paymentMethod)])].filter(Boolean);
+  const rows = methods.map(m=>{
+    const mine = inRange.filter(e=>e.paymentMethod===m);
+    const sum = (t)=> mine.filter(e=>(e.type||'expense')===t).reduce((s,e)=>s+Number(e.amount),0);
+    const count = mine.filter(e=>['expense','income'].includes(e.type||'expense')).length;
+    return { method:m, group:payGroupOf(m), income:sum('income'), expense:sum('expense'), count, mine };
+  }).filter(r=>r.income>0 || r.expense>0);
 
-  const canvas = $('paymentMethodChart'); const emptyNote = $('paymentMethodEmpty');
+  // Group chips (Banks / Cards / Wallets / Cash)
+  const counts = {}; rows.forEach(r=>{ counts[r.group] = (counts[r.group]||0) + 1; });
+  if(payGroupFilter !== 'all' && !counts[payGroupFilter]) payGroupFilter = 'all';
+  $('payGroupChips').innerHTML =
+    `<button type="button" class="chip ${payGroupFilter==='all'?'active':''}" data-group="all">All · ${rows.length}</button>` +
+    Object.entries(PAY_GROUPS).filter(([k])=>counts[k]).map(([k,g])=>`<button type="button" class="chip ${payGroupFilter===k?'active':''}" data-group="${k}">${g.icon} ${g.plural} · ${counts[k]}</button>`).join('');
+  $('paySort').value = paySort;
+
+  const shown = rows.filter(r=> payGroupFilter==='all' || r.group===payGroupFilter);
+  shown.sort((a,b)=>{
+    if(paySort==='received') return b.income-a.income;
+    if(paySort==='total') return (b.income+b.expense)-(a.income+a.expense);
+    if(paySort==='count') return b.count-a.count;
+    if(paySort==='name') return a.method.localeCompare(b.method);
+    return b.expense-a.expense;
+  });
+
+  const totExp = shown.reduce((s,r)=>s+r.expense,0), totInc = shown.reduce((s,r)=>s+r.income,0);
+  $('payTotals').innerHTML = shown.length ? `
+    <div><span>Spent</span><b class="neg">${money(totExp)}</b></div>
+    <div><span>Received</span><b class="pos">${money(totInc)}</b></div>
+    <div><span>Accounts</span><b>${shown.length}</b></div>` : '';
+
+  const canvas = $('paymentMethodChart'), wrap = $('payChartWrap'), emptyNote = $('paymentMethodEmpty');
   if(paymentMethodChartInstance){ try{ paymentMethodChartInstance.destroy(); }catch(e){} paymentMethodChartInstance = null; }
-  if(typeof Chart === 'undefined'){
-    canvas.style.display='none'; emptyNote.style.display='block';
-    emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('') || 'No transactions logged for ' + insightPeriodLabel(insightPeriod).toLowerCase() + '.';
-  } else if(data.length===0){
-    canvas.style.display='none'; emptyNote.style.display='block';
+  const textRows = ()=> shown.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('');
+
+  if(!shown.length){
+    wrap.style.display='none'; emptyNote.style.display='block';
     emptyNote.textContent = 'No transactions logged for ' + insightPeriodLabel(insightPeriod).toLowerCase() + '.';
+  } else if(typeof Chart === 'undefined'){
+    wrap.style.display='none'; emptyNote.style.display='block'; emptyNote.innerHTML = textRows();
   } else {
-    canvas.style.display='block'; emptyNote.style.display='none';
+    wrap.style.display='block'; emptyNote.style.display='none';
+    const showIncome = shown.some(r=>r.income>0);
+    wrap.style.height = Math.max(170, shown.length * (showIncome ? 66 : 44) + 54) + 'px';
     try{
+      const datasets = [];
+      if(showIncome) datasets.push({ label:'Income', data: shown.map(d=>d.income), backgroundColor:'#10B981', borderRadius:8, maxBarThickness:24 });
+      datasets.push({ label:'Expenses', data: shown.map(d=>d.expense), backgroundColor:'#F43F5E', borderRadius:8, maxBarThickness:24 });
       paymentMethodChartInstance = new Chart(canvas.getContext('2d'), {
         type:'bar',
-        data:{
-          labels: data.map(d=>d.method),
-          datasets:[
-            { label:'Income', data: data.map(d=>d.income), backgroundColor:'#10B981', borderRadius:8, maxBarThickness:28 },
-            { label:'Expenses', data: data.map(d=>d.expense), backgroundColor:'#F43F5E', borderRadius:8, maxBarThickness:28 },
-          ]
-        },
+        data:{ labels: shown.map(d=>d.method), datasets },
+        plugins:[valueLabelPlugin],
         options:{
-          indexAxis:'y',
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.x)}` } } },
-          scales:{ x:{ beginAtZero:true, ticks:{ callback:(v)=>curSymbol()+v } } },
+          indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          layout:{ padding:{ right:96 } },
+          plugins:{ legend:{ display:false }, valueLabels:{ fmt: money },
+            tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.x)}` } } },
+          scales:{ x:{ beginAtZero:true, ticks:{ callback:(v)=>curSymbol()+v, maxTicksLimit:5 } }, y:{ grid:{ display:false } } },
         }
       });
     }catch(e){
-      canvas.style.display='none'; emptyNote.style.display='block';
-      emptyNote.innerHTML = data.map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;gap:10px;"><span>${escapeHtml(d.method)}</span><strong style="color:var(--green)">+${money(d.income)}</strong><strong style="color:var(--coral)">-${money(d.expense)}</strong></div>`).join('');
+      wrap.style.display='none'; emptyNote.style.display='block'; emptyNote.innerHTML = textRows();
     }
   }
+
+  // Per-account list with exact amounts; tap to expand
+  $('payList').innerHTML = shown.map(r=>{
+    const g = PAY_GROUPS[r.group], share = totExp ? Math.round(r.expense/totExp*100) : 0;
+    return `
+    <details class="pay-item" data-method="${escapeHtml(r.method)}" ${payOpen.has(r.method)?'open':''}>
+      <summary>
+        <span class="pay-ico">${g.icon}</span>
+        <div style="min-width:0;">
+          <div class="pay-nm">${escapeHtml(r.method)}</div>
+          <span class="pay-badge">${g.label}</span>
+          <div class="pay-meta">${r.count} txn${r.count===1?'':'s'} · ${share}% of spending</div>
+        </div>
+        <div class="pay-amts">
+          <div class="sp">−${money(r.expense)}</div>
+          ${r.income>0 ? `<div class="rc">+${money(r.income)}</div>` : ''}
+        </div>
+        <div class="pay-share"><i style="width:${r.expense?Math.max(3,share):0}%"></i></div>
+      </summary>
+      <div class="pay-detail">${payDetailHtml(r)}</div>
+    </details>`;
+  }).join('');
 }
+$('payGroupChips').addEventListener('click', (ev)=>{
+  const b = ev.target.closest('.chip'); if(!b) return;
+  payGroupFilter = b.dataset.group; renderPaymentMethodChart();
+});
+$('paySort').addEventListener('change', ()=>{ paySort = $('paySort').value; renderPaymentMethodChart(); });
+$('payList').addEventListener('click', (ev)=>{
+  const b = ev.target.closest('[data-setgroup]'); if(!b) return;
+  ev.preventDefault();
+  savePayOverride(b.dataset.method, b.dataset.setgroup);
+  payOpen.add(b.dataset.method);
+  renderPaymentMethodChart();
+});
+$('payList').addEventListener('toggle', (ev)=>{
+  const d = ev.target; if(!d.classList || !d.classList.contains('pay-item')) return;
+  if(d.open) payOpen.add(d.dataset.method); else payOpen.delete(d.dataset.method);
+}, true);
 
 /* ---------- Render all ---------- */
 function renderAll(){
@@ -1702,6 +2263,8 @@ function renderAll(){
   renderOverview();
   renderWeeklyTrend();
   renderInsightCategoryChart();
+  renderWeeklyComparison();
+  renderRangeAll();
   renderPaymentMethodChart();
   populateCategoryFilter();
   renderTransactions();
@@ -1957,7 +2520,7 @@ function showPage(page){
   // Chart.js sizes canvases from their visible container, so a chart drawn
   // while its page was hidden comes out 0×0 — re-render on reveal to fix it.
   if(page === 'home'){ renderAccounts(); renderOverview(); }
-  if(page === 'insight'){ renderWeeklyTrend(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
+  if(page === 'insight'){ renderWeeklyTrend(); renderWeeklyComparison(); renderRangeAll(); renderInsightCategoryChart(); renderPaymentMethodChart(); }
   if(page === 'transactions') renderTransactions();
   if(page === 'settings') renderPaymentMethods();
   window.scrollTo({ top: 0, behavior: 'smooth' });
