@@ -123,6 +123,14 @@ body{
 .section-body{padding:16px 20px 20px;}
 
 /* Period tabs */
+.cat-filter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.cat-filter select,.cat-filter input[type=date]{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;}
+.cat-range-sel{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:12.5px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;max-width:150px;}
+.cat-filter-custom{margin-top:-4px;}
+.cat-filter-custom:not(:has(.show)){display:none;}
+.cat-filter .cf-custom{display:none;gap:6px;align-items:center;flex-wrap:wrap;}
+.cat-filter .cf-custom.show{display:flex;}
+.cat-filter .cf-custom span{font-size:12px;color:var(--ink-soft);}
 .tabs{display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:3px;}
 .tab{border:none;background:transparent;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft);font-family:'IBM Plex Sans',sans-serif;}
 .tab.active{background:var(--ink);color:var(--paper);}
@@ -570,7 +578,23 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
           <button class="tab active" data-type="expense">Expenses</button>
           <button class="tab" data-type="income">Income</button>
         </div>
-        <div style="font-size:12.5px;color:var(--ink-soft);" id="insightCatPeriodLabel">This month</div>
+        <select id="catRangeSelect" class="cat-range-sel" aria-label="Date range">
+          <option value="auto">Same as page period</option>
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="thisWeek">This week</option>
+          <option value="lastWeek">Last week</option>
+          <option value="prevWeek">2 weeks ago</option>
+          <option value="thisMonth">This month</option>
+          <option value="lastMonth">Last month</option>
+          <option value="day">Pick a date…</option>
+          <option value="range">Custom range…</option>
+        </select>
+        <div id="insightCatPeriodLabel" style="display:none;">This month</div>
+      </div>
+      <div class="cat-filter cat-filter-custom">
+        <div class="cf-custom" id="catCustomDay"><input type="date" id="catDay"/></div>
+        <div class="cf-custom" id="catCustomRange"><input type="date" id="catFrom"/><span>to</span><input type="date" id="catTo"/></div>
       </div>
       <div class="overview-grid">
         <div class="cat-rows" id="insightCatRows"></div>
@@ -1898,9 +1922,32 @@ function renderWeeklyTrend(){
 }
 
 /* ---------- Insight: category breakdown pie ---------- */
+let catRangeMode = 'auto';
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmtShort(str){ const [y,m,d]=str.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function catRangeInfo(){
+  const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const wk = startOfWeek(today);
+  switch(catRangeMode){
+    case 'today': return [toStr(today), toStr(today), 'Today'];
+    case 'yesterday': { const y=addDays(today,-1); return [toStr(y), toStr(y), 'Yesterday']; }
+    case 'thisWeek': return [toStr(wk), toStr(addDays(wk,6)), 'This week'];
+    case 'lastWeek': { const a=addDays(wk,-7); return [toStr(a), toStr(addDays(a,6)), 'Last week · '+fmtShort(toStr(a))+' – '+fmtShort(toStr(addDays(a,6)))]; }
+    case 'prevWeek': { const a=addDays(wk,-14); return [toStr(a), toStr(addDays(a,6)), '2 weeks ago · '+fmtShort(toStr(a))+' – '+fmtShort(toStr(addDays(a,6)))]; }
+    case 'thisMonth': { const a=startOfMonth(today); return [toStr(a), toStr(new Date(a.getFullYear(),a.getMonth()+1,0)), 'This month']; }
+    case 'lastMonth': { const a=new Date(today.getFullYear(),today.getMonth()-1,1); return [toStr(a), toStr(new Date(a.getFullYear(),a.getMonth()+1,0)), 'Last month']; }
+    case 'day': { const v=$('catDay').value||toStr(today); return [v, v, fmtShort(v)]; }
+    case 'range': {
+      let a=$('catFrom').value||toStr(startOfMonth(today)), b=$('catTo').value||toStr(today);
+      if(a>b){ const t=a; a=b; b=t; }
+      return [a, b, fmtShort(a)+' – '+fmtShort(b)];
+    }
+    default: { const [a,b]=periodRange(insightPeriod); return [a,b,insightPeriodLabel(insightPeriod)]; }
+  }
+}
 function renderInsightCategoryChart(){
-  $('insightCatPeriodLabel').textContent = insightPeriodLabel(insightPeriod);
-  const [pf, pt] = periodRange(insightPeriod);
+  const [pf, pt, catLabel] = catRangeInfo();
+  $('insightCatPeriodLabel').textContent = catLabel; $('catRangeSelect').title = catLabel;
   const inRange = expenses.filter(e=>e.date>=pf && e.date<=pt && (e.type||'expense')===insightCatType);
   const byCat = {};
   inRange.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
@@ -1918,7 +1965,7 @@ function renderInsightCategoryChart(){
       <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${Math.max(6,pct)}%;background:${color};"></div></div>
       <span class="amt">${money(amt)} <span style="color:var(--ink-soft);font-size:11px;">(${pct}%)</span></span>
     </div>`;
-  }).join('') : `<div class="empty-note">No ${insightCatType} logged for ${insightPeriodLabel(insightPeriod).toLowerCase()}.</div>`;
+  }).join('') : `<div class="empty-note">No ${insightCatType} logged for ${catLabel.toLowerCase()}.</div>`;
 
   const canvas = $('insightCatChart'); const emptyNote = $('insightCatEmpty');
   if(insightCatChartInstance){ try{ insightCatChartInstance.destroy(); }catch(e){} insightCatChartInstance = null; }
@@ -1927,7 +1974,7 @@ function renderInsightCategoryChart(){
     emptyNote.textContent = 'Chart unavailable right now — the breakdown above is still accurate.';
   } else if(catEntries.length===0){
     canvas.style.display='none'; emptyNote.style.display='block';
-    emptyNote.textContent = `No ${insightCatType} logged for ${insightPeriodLabel(insightPeriod).toLowerCase()}.`;
+    emptyNote.textContent = `No ${insightCatType} logged for ${catLabel.toLowerCase()}.`;
   } else {
     canvas.style.display='block'; emptyNote.style.display='none';
     try{
@@ -2442,6 +2489,16 @@ $('insightPeriodTabs').addEventListener('click', (ev)=>{
   renderInsightCategoryChart();
   renderPaymentMethodChart(); renderVariety();
 });
+
+$('catRangeSelect').addEventListener('change', (ev)=>{
+  catRangeMode = ev.target.value;
+  $('catCustomDay').classList.toggle('show', catRangeMode==='day');
+  $('catCustomRange').classList.toggle('show', catRangeMode==='range');
+  if(catRangeMode==='day' && !$('catDay').value) $('catDay').value = todayStr();
+  if(catRangeMode==='range'){ if(!$('catFrom').value) $('catFrom').value = toStr(startOfMonth(new Date())); if(!$('catTo').value) $('catTo').value = todayStr(); }
+  renderInsightCategoryChart();
+});
+['catDay','catFrom','catTo'].forEach(id=>$(id).addEventListener('change', renderInsightCategoryChart));
 
 $('insightCatTypeTabs').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('.tab'); if(!btn) return;

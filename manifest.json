@@ -1,6 +1,6 @@
 {
-  "name": "Ledger — Expense Manager",
-  "short_name": "Ledger",
+  "name": "Expense Tracker — Expense Manager",
+  "short_name": "Expense Tracker",
   "description": "Track what you spend, one line at a time.",
   "start_url": "/",
   "scope": "/",
