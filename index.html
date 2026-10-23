@@ -321,6 +321,7 @@ body{padding-bottom:78px;}
 .pay-add-wrap{display:flex;align-items:center;gap:8px;}
 .pay-add-wrap .pay-opening{width:110px;}
 .pay-topup-btn{background:var(--btn-green,#2F6F4E);color:#fff;border:none;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap;}
+.pay-sub-btn{background:var(--btn-coral,#C4432B);}
 .acct-edit-btn{background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
 .acct-x{position:absolute;top:8px;right:8px;z-index:2;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,0.35);color:#fff;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .acct-x:hover{background:rgba(0,0,0,0.55);}
@@ -696,7 +697,7 @@ html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;}
   <div class="section">
     <div class="section-head"><h2 class="section-title">💳 Payment Methods</h2></div>
     <div class="section-body">
-      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Use “Add money” whenever you top up an account — it’s added to the balance shown on Home straight away.</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Add your own — a specific card, wallet, or bank account — and pick it when logging a transaction. Tap “Money” to add or remove money from an account — the balance shown on Home updates straight away.</div>
       <div id="paymentMethodList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
       <div class="filters" style="margin-bottom:0;">
         <input type="text" id="newPaymentInput" placeholder="e.g. Visa •••• 4582, Amex, PayPal…" />
@@ -1347,31 +1348,33 @@ function renderPaymentMethods(){
       <span class="pay-name">${acctIcon(p)} ${escapeHtml(p)}</span>
       <span style="font-size:11.5px;color:var(--ink-soft);">${usageCount(p)} used</span>
       <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:${(bal[p]||0)<0?'var(--coral)':'var(--green)'};">${moneySigned(bal[p]||0)}</span>
-      <button type="button" class="chip pay-more" style="padding:4px 10px;font-size:12px;">＋ Money ▾</button>
+      <button type="button" class="chip pay-more" style="padding:4px 10px;font-size:12px;">± Money ▾</button>
       <button class="icon-btn danger pay-remove-btn" title="${usageCount(p) ? 'In use — can\'t delete' : 'Delete'}" style="${usageCount(p) ? 'opacity:.35;' : ''}">✕</button>
       <div class="pay-open-label">
-        <span>Add money</span>
+        <span>Edit balance</span>
         <span class="pay-add-wrap">
           <input type="number" step="0.01" min="0" inputmode="decimal" class="pay-opening pay-topup-input" placeholder="0.00" />
           <button type="button" class="pay-topup-btn">+ Add</button>
+          <button type="button" class="pay-topup-btn pay-sub-btn">− Less</button>
         </span>
       </div>
     </div>`).join('');
 }
 $('paymentMethodList').addEventListener('click', (ev)=>{ const b = ev.target.closest('.pay-more'); if(b) b.closest('.pay-method-row').classList.toggle('open'); });
-async function addMoney(p, amount){
+async function addMoney(p, amount, subtract){
   if(!(amount > 0)){ showToast('Enter an amount greater than 0'); return false; }
-  topups.push({ id: uid(), date: todayStr(), account: p, amount, createdAt: Date.now() });
+  const signed = subtract ? -amount : amount;
+  topups.push({ id: uid(), date: todayStr(), account: p, amount: signed, createdAt: Date.now() });
   await saveData();
   renderAll();
-  showToast(money(amount) + ' added to ' + p);
+  showToast(subtract ? money(amount) + ' removed from ' + p : money(amount) + ' added to ' + p);
   return true;
 }
 $('paymentMethodList').addEventListener('click', async (ev)=>{
   const btn = ev.target.closest('.pay-topup-btn'); if(!btn) return;
   const row = btn.closest('.pay-method-row');
   const inp = row.querySelector('.pay-topup-input');
-  await addMoney(row.dataset.pay, parseFloat(inp.value));
+  await addMoney(row.dataset.pay, parseFloat(inp.value), btn.classList.contains('pay-sub-btn'));
 });
 $('paymentMethodList').addEventListener('keydown', (ev)=>{
   if(ev.key !== 'Enter' || !ev.target.classList.contains('pay-topup-input')) return;
